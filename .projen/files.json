@@ -6,7 +6,6 @@
     ".github/workflows/build.yml",
     ".github/workflows/deploy.yml",
     ".github/workflows/pull-request-lint.yml",
-    ".github/workflows/release-production.yml",
     ".github/workflows/upgrade.yml",
     ".gitignore",
     ".mergify.yml",

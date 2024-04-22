@@ -52,5 +52,4 @@ junit.xml
 /cdk-outputs-*.json
 !/src/app.ts
 !/.github/workflows/deploy.yml
-!/.github/workflows/release-production.yml
 !/.projenrc.ts

@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
+      contents: read
     env:
       CI: "true"
     steps:
@@ -43,6 +43,7 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
+          role-to-assume: arn:aws:iam::730335247138:role/GithubAction
           role-session-name: GitHubAction
           aws-region: us-east-1
       - uses: actions/download-artifact@v4
@@ -51,5 +52,31 @@ jobs:
           path: cdk.out/
       - run: npx projen install:ci
       - run: npx projen publish:assets
-      - run: npx projen bump
-      - run: npx projen release:push-assembly
+  deploy-production:
+    name: Deploy stage production to AWS
+    needs: assetUpload
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::730335247138:role/GithubAction
+          role-session-name: GitHubAction
+          aws-region: eu-west-1
+      - uses: actions/download-artifact@v4
+        with:
+          name: cloud-assembly
+          path: cdk.out/
+      - run: npx projen install:ci
+      - run: npx projen deploy:production
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cdk-outputs-production
+          path: cdk-outputs-production.json
