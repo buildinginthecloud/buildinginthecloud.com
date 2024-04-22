@@ -1,6 +1,5 @@
 import { App, Stack, StackProps, aws_route53, aws_route53_patterns } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { GitHubOIDCStack } from '../src/github-actions-aws-auth-cdk-stack';
 
 export class BuildingInTheCloudStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
@@ -24,7 +23,4 @@ const Env = {
 
 const app = new App();
 new BuildingInTheCloudStack(app, 'BuildingInTheCloudCom', { env: Env });
-new GitHubOIDCStack(app, 'GithubActionsAwsAuthCdkStack', {
-  env: Env,
-});
 app.synth();

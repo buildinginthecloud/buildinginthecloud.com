@@ -36,7 +36,7 @@ new GithubCDKPipeline(project,
       },
     ],
     iamRoleArns: {
-      default: "arn:aws:iam::730335247138:role/GitHubDeployRole"
+      default: "arn:aws:iam::730335247138:role/GithubAction"
     },
   },
 );
