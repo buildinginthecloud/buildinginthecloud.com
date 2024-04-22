@@ -19,10 +19,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     'projen-pipelines',
     'aws-cdk-github-oidc',
   ],
-  autoMerge: true
 });
 
-// // Create the pipeline
 new GithubCDKPipeline(project,
   {
     stackPrefix: 'BuildingintheCloud',
@@ -37,7 +35,9 @@ new GithubCDKPipeline(project,
         },
       },
     ],
-    iamRoleArns: {},
+    iamRoleArns: {
+      default: "arn:aws:iam::730335247138:role/GitHubDeployRole"
+    },
   },
 );
 

@@ -43,6 +43,7 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
+          role-to-assume: arn:aws:iam::730335247138:role/GitHubDeployRole
           role-session-name: GitHubAction
           aws-region: us-east-1
       - uses: actions/download-artifact@v4
