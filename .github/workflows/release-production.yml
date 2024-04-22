@@ -22,7 +22,6 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
-          role-to-assume: arn:aws:iam::730335247138:role/GithubAction
           role-session-name: GitHubAction
           aws-region: eu-west-1
       - run: npx projen install:ci
