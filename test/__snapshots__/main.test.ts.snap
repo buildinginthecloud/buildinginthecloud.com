@@ -22,11 +22,11 @@ exports[`Snapshot 1`] = `
   "Resources": {
     "HostedZoneDB99F866": {
       "Properties": {
-        "Name": "buildinginthecloud.com.",
+        "Name": "test.aws.",
       },
       "Type": "AWS::Route53::HostedZone",
     },
-    "RedirectRedirectAliasRecordSixc02fee2A734979": {
+    "RedirectRedirectAliasRecordSixf7ef0389F5FAC9": {
       "Properties": {
         "AliasTarget": {
           "DNSName": {
@@ -48,12 +48,12 @@ exports[`Snapshot 1`] = `
         "HostedZoneId": {
           "Ref": "HostedZoneDB99F866",
         },
-        "Name": "buildinginthecloud.com.",
+        "Name": "test.aws.",
         "Type": "AAAA",
       },
       "Type": "AWS::Route53::RecordSet",
     },
-    "RedirectRedirectAliasRecordc02fee2436FEDB": {
+    "RedirectRedirectAliasRecordf7ef0375E96F83": {
       "Properties": {
         "AliasTarget": {
           "DNSName": {
@@ -75,7 +75,7 @@ exports[`Snapshot 1`] = `
         "HostedZoneId": {
           "Ref": "HostedZoneDB99F866",
         },
-        "Name": "buildinginthecloud.com.",
+        "Name": "test.aws.",
         "Type": "A",
       },
       "Type": "AWS::Route53::RecordSet",
@@ -186,8 +186,8 @@ exports[`Snapshot 1`] = `
                 },
                 "ForAllValues:StringLike": {
                   "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
-                    "*.buildinginthecloud.com",
-                    "*.buildinginthecloud.com",
+                    "*.test.aws",
+                    "*.test.aws",
                   ],
                 },
               },
@@ -223,7 +223,7 @@ exports[`Snapshot 1`] = `
     "RedirectRedirectCertificateCertificateRequestorResource9F9673DE": {
       "DeletionPolicy": "Delete",
       "Properties": {
-        "DomainName": "buildinginthecloud.com",
+        "DomainName": "test.aws",
         "HostedZoneId": {
           "Ref": "HostedZoneDB99F866",
         },
@@ -235,7 +235,7 @@ exports[`Snapshot 1`] = `
           ],
         },
         "SubjectAlternativeNames": [
-          "buildinginthecloud.com",
+          "test.aws",
         ],
       },
       "Type": "AWS::CloudFormation::CustomResource",
@@ -245,9 +245,9 @@ exports[`Snapshot 1`] = `
       "Properties": {
         "DistributionConfig": {
           "Aliases": [
-            "buildinginthecloud.com",
+            "test.aws",
           ],
-          "Comment": "Redirect to yvovanzee.nl from buildinginthecloud.com",
+          "Comment": "Redirect to yvovanzee.nl from test.aws",
           "DefaultCacheBehavior": {
             "AllowedMethods": [
               "GET",

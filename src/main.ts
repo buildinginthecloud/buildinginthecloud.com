@@ -2,7 +2,6 @@ import { PipelineApp } from './app';
 import { BuildingInTheCloudStack } from './buildinginthecloud_stack';
 
 
-
 const Env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
@@ -17,6 +16,6 @@ const app = new PipelineApp({
       env: Env,
     });
   },
-  
+
 });
 app.synth();
