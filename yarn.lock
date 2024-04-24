@@ -1372,9 +1372,9 @@ aws-cdk@^2.138.0:
     fsevents "2.3.2"
 
 aws-sdk@^2.1600.0:
-  version "2.1603.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1603.0.tgz#81fd7e76502d46acf06c726a3dc547bdee9d3e5e"
-  integrity sha512-AB54LyTODyiTKdtUzE0LzhnPbumYH3KhDstje8i4KfeBSGCeszTgq89YfOVpSy5twfu9WpsJ2cHOxlrlXn9cpg==
+  version "2.1605.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1605.0.tgz#8ba2c5bd4b43c9b95dd63d6916916a2dcd92abbd"
+  integrity sha512-/wtOuF7WgkbN6YL3xJ+FB54kvIAfnP/DQVDaE6rSYv6ft0xr01Si94NgQWhb5OcFkFfRAC4auZX8PiFNtOi9xQ==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -2097,9 +2097,9 @@ dotgitignore@^2.1.0:
     minimatch "^3.0.4"
 
 electron-to-chromium@^1.4.668:
-  version "1.4.745"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.745.tgz#9c202ce9cbf18a5b5e0ca47145fd127cc4dd2290"
-  integrity sha512-tRbzkaRI5gbUn5DEvF0dV4TQbMZ5CLkWeTAXmpC9IrYT+GE+x76i9p+o3RJ5l9XmdQlI1pPhVtE9uNcJJ0G0EA==
+  version "1.4.747"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.747.tgz#e37fa5b7b7e4c22607c5f59b5cf78f947266e77d"
+  integrity sha512-+FnSWZIAvFHbsNVmUxhEqWiaOiPMcfum1GQzlWCg/wLigVtshOsjXHyEFfmt6cFK6+HkS3QOJBv6/3OPumbBfw==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -4276,10 +4276,10 @@ process-nextick-args@~2.0.0:
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.1.tgz#7820d9b16120cc55ca9ae7792680ae7dba6d7fe2"
   integrity sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
 
-projen-pipelines@^0.0.54:
-  version "0.0.54"
-  resolved "https://registry.yarnpkg.com/projen-pipelines/-/projen-pipelines-0.0.54.tgz#f99a6b490611f1cf800d6166f20bab4113826a23"
-  integrity sha512-FT+LIQSLu4qQbrb8vtk7XHbViZeLSxZgxRgy9zQ1O48lkAvo1O2PfZ1U5+yZ56iy/zJrAHPVzeox645NwrGPjw==
+projen-pipelines@^0.0.55:
+  version "0.0.55"
+  resolved "https://registry.yarnpkg.com/projen-pipelines/-/projen-pipelines-0.0.55.tgz#59c708f00d1f8b04f1e7de431d5ee8baa8c78362"
+  integrity sha512-fQ/VVkfY1TdLYKHlUahyWj8HGZth1r2AtMO+MUToqgmoOoxvXv0NrsBB7TIA81JkjkbgLFelLErBxn3eo97/gQ==
   dependencies:
     projen "^0.81.1"
     standard-version "^9.5.0"
