@@ -28,7 +28,6 @@ new GithubCDKPipeline(project,
     stages: [
       {
         name: 'production',
-        // manualApproval: true,
         env: {
           account: '730335247138',
           region: 'eu-west-1',
@@ -37,7 +36,6 @@ new GithubCDKPipeline(project,
     ],
     iamRoleArns: {
       default: 'arn:aws:iam::730335247138:role/GithubAction',
-      // region: 'eu-west-1'
     },
   },
 );
