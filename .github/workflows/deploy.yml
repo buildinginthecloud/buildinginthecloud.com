@@ -9,6 +9,7 @@ on:
 jobs:
   synth:
     name: Synth CDK application
+    needs: []
     runs-on: ubuntu-latest
     permissions:
       id-token: write
