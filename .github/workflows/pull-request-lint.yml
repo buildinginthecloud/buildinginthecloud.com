@@ -26,5 +26,10 @@ jobs:
           types: |-
             feat
             fix
+            build
             chore
+            ci
+            docs
+            style
+            refactor
           requireScope: false
