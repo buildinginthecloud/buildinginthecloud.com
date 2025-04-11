@@ -4,30 +4,36 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53_patterns from 'aws-cdk-lib/aws-route53-patterns';
 import { Duration } from 'aws-cdk-lib';
 import type { MailRelayProps } from './types';
+import { MAIL_CONFIG } from './types';
 
 /**
- * Creates a stack that configures mail relay services using Route53
- * for a specified domain with Apple iCloud mail services.
- */
-/**
- * A CDK Stack that configures mail relay services using Route53 for Apple iCloud mail services
+ * A CDK Stack that configures mail relay services using Route53 for Apple iCloud mail services.
+ * This stack creates:
+ * - A Route53 hosted zone for the domain
+ * - SPF record for mail verification
+ * - DKIM record for domain key validation
+ * - MX records for mail routing
+ * - HTTPS redirect for web traffic
+ * 
  * @example
  * ```typescript
  * new MailRelay(app, 'MailRelayStack', {
- *   domainName: 'example.com'
+ *   domainName: 'example.com',
+ *   targetDomainName: 'target.com'
  * });
  * ```
  */
 export class MailRelay extends Stack {
   /**
-   * The Route53 hosted zone for the domain
+   * The Route53 hosted zone for the domain.
+   * This zone contains all the DNS records for mail configuration.
    */
   public readonly hostedZone: route53.PublicHostedZone;
 
   constructor(scope: Construct, id: string, props: MailRelayProps = {}) {
     super(scope, id, props);
 
-    // Create a Route53 hosted zone for the domain
+    // Extract domain names with defaults
     const domainName = props.domainName ?? 'buildinginthecloud.com';
     const targetDomainName = props.targetDomainName ?? 'yvovanzee.nl';
 
@@ -36,33 +42,37 @@ export class MailRelay extends Stack {
       zoneName: domainName,
     });
 
-    // Create a TXT Record for apple mail verification
-    new route53.TxtRecord(this, 'AppleMailVerification', {
+    // Create a TXT Record for apple mail verification (SPF)
+    new route53.TxtRecord(this, 'TXTRecord', {
       zone: this.hostedZone,
-      recordName: `apple-domain=${domainName}`,
-      values: ['"v=spf1 include:icloud.com ~all"'] as const,
-      ttl: Duration.minutes(1800),
+      // recordName: `apple-domain=${domainName}`,
+      values: [MAIL_CONFIG.TXT_RECORD],
+      ttl: Duration.minutes(MAIL_CONFIG.TTL),
     });
+    new route53.TxtRecord(this, 'SPFRecord', {
+      zone: this.hostedZone,
+      recordName: `@`,
+      values: [MAIL_CONFIG.SPF_RECORD],
+      ttl: Duration.minutes(MAIL_CONFIG.TTL),
+    })
 
-    // Create Cname record for domainkey validation
-    new route53.CnameRecord(this, 'DomainKeyCname', {
+    // Create CNAME record for DKIM validation
+    new route53.CnameRecord(this, 'DKIMRecord', {
       zone: this.hostedZone,
       recordName: `sig1._domainkey.${domainName}`,
       domainName: `sig1.dkim.${domainName}.at.icloudmailadmin.com`,
-      ttl: Duration.minutes(1800),
+      ttl: Duration.minutes(MAIL_CONFIG.TTL),
     });
 
-    // Create MX Record pointing to icloud.com
+    // Create MX Record pointing to iCloud mail servers
     new route53.MxRecord(this, 'MXRecord', {
       zone: this.hostedZone,
       recordName: domainName,
-      values: [
-        { priority: 10, hostName: 'mx01.mail.icloud.com' },
-        { priority: 20, hostName: 'mx02.mail.icloud.com' },
-      ] as const,
-      ttl: Duration.minutes(1800),
+      values: [...MAIL_CONFIG.MX_RECORDS],
+      ttl: Duration.minutes(MAIL_CONFIG.TTL),
     });
 
+    // Create HTTPS redirect for web traffic
     new route53_patterns.HttpsRedirect(this, 'Redirect', {
       recordNames: [this.hostedZone.zoneName],
       targetDomain: targetDomainName,
@@ -71,15 +81,17 @@ export class MailRelay extends Stack {
   }
 }
 
-// for development, use account/region from cdk cli
+// Environment configuration for development
 const devEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
-};
+} as const;
 
+// Create and configure the CDK app
 const app = new App();
 
 new MailRelay(app, 'buildinginthecloud-dev', { env: devEnv });
-// new MyStack(app, 'buildinginthecloud-prod', { env: prodEnv });
+// new MailRelay(app, 'buildinginthecloud-prod', { env: prodEnv });
 
 app.synth();
+
