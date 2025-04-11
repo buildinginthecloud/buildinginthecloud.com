@@ -35,5 +35,5 @@ export const MAIL_CONFIG = {
     { priority: 20, hostName: 'mx02.mail.icloud.com' },
   ] as const,
 
-  TXT_RECORD: 'apple-domain=4Y5uzvmHnOKnBLil'
+  TXT_RECORD: 'apple-domain=4Y5uzvmHnOKnBLil',
 } as const;
