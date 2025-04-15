@@ -51,16 +51,19 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     ignore: [{ dependencyName: 'aws-cdk-lib' }, { dependencyName: 'aws-cdk' }],
   },
   githubOptions: {
+    mergify: true,
     mergifyOptions: {
       rules: [
         {
           name: 'Automatic merge for Dependabot pull requests',
           conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
           actions: {
-            queue: {
-              name: 'dependency-updates',
-              method: 'squash',
-              commit_message_template: '{{title}} (#{{number}})',
+            review: {
+              type: 'APPROVE',
+              message: 'Thanks for the PR! I will merge it now.',
+            },
+            merge: {
+              method: 'merge',
             },
           },
         },
