@@ -25,10 +25,10 @@ export interface MailRelayProps extends StackProps {
 export const MAIL_CONFIG = {
   /** Time-to-live for DNS records in minutes */
   TTL: 1800,
-  
+
   /** SPF record value for iCloud mail */
   SPF_RECORD: 'v=spf1 include:icloud.com ~all',
-  
+
   /** MX record priorities and hostnames */
   MX_RECORDS: [
     { priority: 10, hostName: 'mx01.mail.icloud.com' },

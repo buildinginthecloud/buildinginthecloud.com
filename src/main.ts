@@ -1,8 +1,6 @@
-import { Stack, App } from 'aws-cdk-lib';
-import { type Construct } from 'constructs';
+import { Stack, App, Duration } from 'aws-cdk-lib';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as route53_patterns from 'aws-cdk-lib/aws-route53-patterns';
-import { Duration } from 'aws-cdk-lib';
+import { type Construct } from 'constructs';
 import type { MailRelayProps } from './types';
 import { MAIL_CONFIG } from './types';
 
@@ -14,7 +12,7 @@ import { MAIL_CONFIG } from './types';
  * - DKIM record for domain key validation
  * - MX records for mail routing
  * - HTTPS redirect for web traffic
- * 
+ *
  * @example
  * ```typescript
  * new MailRelay(app, 'MailRelayStack', {
@@ -35,7 +33,7 @@ export class MailRelay extends Stack {
 
     // Extract domain names with defaults
     const domainName = props.domainName ?? 'buildinginthecloud.com';
-    const targetDomainName = props.targetDomainName ?? 'yvovanzee.nl';
+    // const targetDomainName = props.targetDomainName ?? 'yvovanzee.nl';
 
     // Create a new public hosted zone for the domain
     this.hostedZone = new route53.PublicHostedZone(this, 'HostedZone', {
@@ -45,23 +43,16 @@ export class MailRelay extends Stack {
     // Create a TXT Record for apple mail verification (SPF)
     new route53.TxtRecord(this, 'TXTRecord', {
       zone: this.hostedZone,
-      // recordName: `apple-domain=${domainName}`,
-      values: [MAIL_CONFIG.TXT_RECORD],
-      ttl: Duration.minutes(MAIL_CONFIG.TTL),
+      values: [MAIL_CONFIG.TXT_RECORD, MAIL_CONFIG.SPF_RECORD],
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
     });
-    new route53.TxtRecord(this, 'SPFRecord', {
-      zone: this.hostedZone,
-      recordName: `@`,
-      values: [MAIL_CONFIG.SPF_RECORD],
-      ttl: Duration.minutes(MAIL_CONFIG.TTL),
-    })
 
     // Create CNAME record for DKIM validation
     new route53.CnameRecord(this, 'DKIMRecord', {
       zone: this.hostedZone,
       recordName: `sig1._domainkey.${domainName}`,
       domainName: `sig1.dkim.${domainName}.at.icloudmailadmin.com`,
-      ttl: Duration.minutes(MAIL_CONFIG.TTL),
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
     });
 
     // Create MX Record pointing to iCloud mail servers
@@ -69,14 +60,7 @@ export class MailRelay extends Stack {
       zone: this.hostedZone,
       recordName: domainName,
       values: [...MAIL_CONFIG.MX_RECORDS],
-      ttl: Duration.minutes(MAIL_CONFIG.TTL),
-    });
-
-    // Create HTTPS redirect for web traffic
-    new route53_patterns.HttpsRedirect(this, 'Redirect', {
-      recordNames: [this.hostedZone.zoneName],
-      targetDomain: targetDomainName,
-      zone: this.hostedZone,
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
     });
   }
 }
@@ -94,4 +78,3 @@ new MailRelay(app, 'buildinginthecloud-dev', { env: devEnv });
 // new MailRelay(app, 'buildinginthecloud-prod', { env: prodEnv });
 
 app.synth();
-
