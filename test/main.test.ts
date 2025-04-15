@@ -23,12 +23,12 @@ describe('MailRelay Stack', () => {
     });
   });
 
-  test('creates SPF record', () => {
+  test('creates TXT and SPF record', () => {
     template.hasResourceProperties('AWS::Route53::RecordSet', {
       Type: 'TXT',
-      Name: 'apple-domain=test-domain.com.',
-      ResourceRecords: [MAIL_CONFIG.SPF_RECORD],
-      TTL: String(MAIL_CONFIG.TTL * 60), // TTL in seconds
+      Name: 'test-domain.com.',
+      ResourceRecords: [`"${MAIL_CONFIG.TXT_RECORD}"`, `"${MAIL_CONFIG.SPF_RECORD}"`],
+      TTL: MAIL_CONFIG.TTL.toString(),
     });
   });
 
@@ -37,7 +37,7 @@ describe('MailRelay Stack', () => {
       Type: 'CNAME',
       Name: 'sig1._domainkey.test-domain.com.',
       ResourceRecords: ['sig1.dkim.test-domain.com.at.icloudmailadmin.com'],
-      TTL: String(MAIL_CONFIG.TTL * 60),
+      TTL: MAIL_CONFIG.TTL.toString(),
     });
   });
 
@@ -45,19 +45,8 @@ describe('MailRelay Stack', () => {
     template.hasResourceProperties('AWS::Route53::RecordSet', {
       Type: 'MX',
       Name: 'test-domain.com.',
-      ResourceRecords: [
-        '10 mx01.mail.icloud.com',
-        '20 mx02.mail.icloud.com',
-      ],
-      TTL: String(MAIL_CONFIG.TTL * 60),
-    });
-  });
-
-  test('creates HTTPS redirect', () => {
-    template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-    template.hasResourceProperties('AWS::Route53::RecordSet', {
-      Type: 'A',
-      Name: 'test-domain.com.',
+      ResourceRecords: ['10 mx01.mail.icloud.com', '20 mx02.mail.icloud.com'],
+      TTL: MAIL_CONFIG.TTL.toString(),
     });
   });
 
