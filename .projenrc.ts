@@ -9,10 +9,10 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   authorOrganization: true,
   name: 'buildinginthecloud.com',
   description: 'CDK code for buildingthecloud.com',
-  cdkVersion: '2.189.0',
+  cdkVersion: '2.190.0',
   cdkVersionPinning: true,
   defaultReleaseBranch: 'main',
-  packageManager: NodePackageManager.YARN,
+  packageManager: NodePackageManager.NPM,
   projenVersion: '0.91.20', // Find the latest projen version here: https://www.npmjs.com/package/projen
   projenrcTs: true,
   release: true,
