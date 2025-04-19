@@ -51,22 +51,40 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     ignore: [{ dependencyName: 'aws-cdk-lib' }, { dependencyName: 'aws-cdk' }],
   },
   githubOptions: {
+    mergify: true,
     mergifyOptions: {
       rules: [
         {
-          name: 'Automatic merge for Dependabot pull requests',
-          conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
+          name: 'Automatically approve dependency upgrade PRs if they pass build',
           actions: {
-            name: 'dependency-updates',
-            method: 'squash',
-            commit_message_template: '{{title}} (#{{number}})',
+            review: {
+              type: 'APPROVE',
+              message: 'Automatically approved dependency upgrade PR',
+            },
           },
+          conditions: [
+            'label=auto-approve',
+            'label=deps-upgrade',
+            '-label~=(do-not-merge)',
+            'status-success=build',
+            'author=github-actions[bot]',
+            'title="chore(deps): upgrade dependencies"',
+          ],
         },
       ],
     },
     pullRequestLintOptions: {
+      semanticTitle: true,
       semanticTitleOptions: {
-        types: ['feat', 'fix', 'build', 'chore', 'ci', 'docs', 'style', 'refactor'],
+        types: [
+          'chore',
+          'docs',
+          'feat',
+          'fix',
+          'ci',
+          'refactor',
+          'test',
+        ],
       },
     },
   },
