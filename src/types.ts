@@ -23,17 +23,17 @@ export interface MailRelayProps extends StackProps {
  * Mail record configuration constants
  */
 export const MAIL_CONFIG = {
-  /** Time-to-live for DNS records in minutes */
+  /** Time-to-live for DNS records in seconds */
   TTL: 1800,
-  
+
   /** SPF record value for iCloud mail */
   SPF_RECORD: 'v=spf1 include:icloud.com ~all',
-  
+
   /** MX record priorities and hostnames */
   MX_RECORDS: [
-    { priority: 10, hostName: 'mx01.mail.icloud.com' },
-    { priority: 20, hostName: 'mx02.mail.icloud.com' },
+    { priority: 10, hostName: 'mx01.mail.icloud.com.' },
+    { priority: 20, hostName: 'mx02.mail.icloud.com.' },
   ] as const,
 
-  TXT_RECORD: 'apple-domain=4Y5uzvmHnOKnBLil',
+  TXT_RECORD: 'apple-domain=Qc2qLE9vanUyATjL',
 } as const;
