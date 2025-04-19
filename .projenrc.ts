@@ -57,11 +57,9 @@ const project = new awscdk.AwsCdkTypeScriptApp({
           name: 'Automatic merge for Dependabot pull requests',
           conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
           actions: {
-            queue: {
-              name: 'dependency-updates',
-              method: 'squash',
-              commit_message_template: '{{title}} (#{{number}})',
-            },
+            name: 'dependency-updates',
+            method: 'squash',
+            commit_message_template: '{{title}} (#{{number}})',
           },
         },
       ],
