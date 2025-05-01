@@ -65,9 +65,6 @@ venv/
 junit.xml
 /coverage/
 !/.github/workflows/build.yml
-/dist/changelog.md
-/dist/version.txt
-!/.github/workflows/release.yml
 !/.github/dependabot.yml
 !/.github/pull_request_template.md
 !/.prettierignore
