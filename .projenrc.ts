@@ -70,6 +70,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
       ],
     },
     pullRequestLintOptions: {
+      semanticTitle: true,
       semanticTitleOptions: {
         types: ['feat', 'fix', 'build', 'chore', 'ci', 'docs', 'style', 'refactor'],
       },
