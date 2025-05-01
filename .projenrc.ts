@@ -17,8 +17,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   projenVersion: '0.91.29', // Find the latest projen version here: https://www.npmjs.com/package/projen
   projenrcTs: true,
   release: false,
-  deps: ['projen-pipelines', 'aws-cdk-github-oidc'],
-  devDeps: ['projen-pipelines', 'aws-cdk-github-oidc'],
+  deps: [],
+  devDeps: ['@types/js-yaml'],
   prettier: true,
   prettierOptions: {
     settings: {
@@ -65,6 +65,19 @@ const project = new awscdk.AwsCdkTypeScriptApp({
         {
           name: 'Automatic merge for Dependabot pull requests',
           conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
+          actions: {
+            review: {
+              type: 'APPROVE',
+              message: 'Thanks for the PR! I will merge it now.',
+            },
+            merge: {
+              method: 'merge',
+            },
+          },
+        },
+        {
+          name: 'Automatic merge for yvthepief pull requests',
+          conditions: ['author=yvthepief', 'check-success=build', 'check-success=test'],
           actions: {
             review: {
               type: 'APPROVE',

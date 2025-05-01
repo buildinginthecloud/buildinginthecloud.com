@@ -31,6 +31,7 @@ This project uses GitHub Actions for continuous integration and deployment.
 
 - **Build**: Runs when a pull request is created or updated to verify that the code builds successfully.
 - **Test**: Runs when a pull request is created or updated to verify that all tests pass.
+- **Auto-Approve**: Automatically approves pull requests from specific users (including yvthepief) when they have the 'auto-approve' label.
 
 The test workflow runs `npx projen test` to execute all tests in the repository.
 
