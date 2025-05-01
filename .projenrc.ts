@@ -32,14 +32,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     dirs: ['src', 'test'],
   },
   autoApproveOptions: {
-    allowedUsernames: [
-      'dependabot',
-      'dependabot[bot]',
-      'github-bot',
-      'github-actions[bot]',
-      'yvthepief',
-      'Yvo van Zee',
-    ],
+    allowedUsernames: ['dependabot', 'dependabot[bot]', 'github-bot', 'github-actions[bot]'],
     /**
      * The name of the secret that has the GitHub PAT for auto-approving PRs.
      * Generate a new PAT (https://github.com/settings/tokens/new) and add it to your repo's secrets
@@ -65,19 +58,6 @@ const project = new awscdk.AwsCdkTypeScriptApp({
         {
           name: 'Automatic merge for Dependabot pull requests',
           conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
-          actions: {
-            review: {
-              type: 'APPROVE',
-              message: 'Thanks for the PR! I will merge it now.',
-            },
-            merge: {
-              method: 'merge',
-            },
-          },
-        },
-        {
-          name: 'Automatic merge for yvthepief pull requests',
-          conditions: ['author=yvthepief', 'check-success=build', 'check-success=test'],
           actions: {
             review: {
               type: 'APPROVE',
