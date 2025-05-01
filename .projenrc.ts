@@ -32,7 +32,14 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     dirs: ['src', 'test'],
   },
   autoApproveOptions: {
-    allowedUsernames: ['dependabot', 'dependabot[bot]', 'github-bot', 'github-actions[bot]', 'yvthepief'],
+    allowedUsernames: [
+      'dependabot',
+      'dependabot[bot]',
+      'github-bot',
+      'github-actions[bot]',
+      'yvthepief',
+      'Yvo van Zee',
+    ],
     /**
      * The name of the secret that has the GitHub PAT for auto-approving PRs.
      * Generate a new PAT (https://github.com/settings/tokens/new) and add it to your repo's secrets
