@@ -1,7 +1,7 @@
 import { awscdk } from 'projen';
 import { DependabotScheduleInterval } from 'projen/lib/github';
-import { NodePackageManager } from 'projen/lib/javascript';
 import { JobPermission } from 'projen/lib/github/workflows-model';
+import { NodePackageManager } from 'projen/lib/javascript';
 
 const project = new awscdk.AwsCdkTypeScriptApp({
   authorName: 'Yvo van Zee',
