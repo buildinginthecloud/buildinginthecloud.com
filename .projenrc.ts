@@ -1,5 +1,6 @@
 import { awscdk } from 'projen';
 import { DependabotScheduleInterval } from 'projen/lib/github';
+import { JobPermission } from 'projen/lib/github/workflows-model';
 import { NodePackageManager } from 'projen/lib/javascript';
 
 const project = new awscdk.AwsCdkTypeScriptApp({
@@ -31,7 +32,14 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     dirs: ['src', 'test'],
   },
   autoApproveOptions: {
-    allowedUsernames: ['dependabot', 'dependabot[bot]', 'github-bot', 'github-actions[bot]'],
+    allowedUsernames: [
+      'dependabot',
+      'dependabot[bot]',
+      'github-bot',
+      'github-actions[bot]',
+      'yvthepief',
+      'Yvo van Zee',
+    ],
     /**
      * The name of the secret that has the GitHub PAT for auto-approving PRs.
      * Generate a new PAT (https://github.com/settings/tokens/new) and add it to your repo's secrets
@@ -70,6 +78,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
       ],
     },
     pullRequestLintOptions: {
+      semanticTitle: true,
       semanticTitleOptions: {
         types: ['feat', 'fix', 'build', 'chore', 'ci', 'docs', 'style', 'refactor'],
       },
@@ -109,4 +118,39 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     'venv/',
   ],
 });
+
+// Add a GitHub workflow to run tests when a pull request is created
+const testWorkflow = project.github!.addWorkflow('test');
+testWorkflow.on({
+  pullRequest: {},
+  workflowDispatch: {},
+});
+
+testWorkflow.addJobs({
+  test: {
+    runsOn: ['ubuntu-latest'],
+    permissions: {
+      contents: JobPermission.READ,
+    },
+    steps: [
+      {
+        name: 'Checkout',
+        uses: 'actions/checkout@v4',
+        with: {
+          ref: '${{ github.event.pull_request.head.ref }}',
+          repository: '${{ github.event.pull_request.head.repo.full_name }}',
+        },
+      },
+      {
+        name: 'Install dependencies',
+        run: 'npm install',
+      },
+      {
+        name: 'Run tests',
+        run: 'npx projen test',
+      },
+    ],
+  },
+});
+
 project.synth();
