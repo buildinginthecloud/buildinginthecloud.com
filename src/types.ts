@@ -20,6 +20,61 @@ export interface MailRelayProps extends StackProps {
 }
 
 /**
+ * Configuration properties for the DomainRedirect stack
+ */
+export interface DomainRedirectProps extends StackProps {
+  /**
+   * The source domain name that will redirect to the target domain.
+   * @default 'buildinginthecloud.com'
+   */
+  readonly sourceDomain?: string;
+
+  /**
+   * The target domain name where traffic will be redirected.
+   * @default 'yvovanzee.nl'
+   */
+  readonly targetDomain?: string;
+
+  /**
+   * Whether to preserve the URL path in the redirect.
+   * @default true
+   */
+  readonly preservePath?: boolean;
+
+  /**
+   * Whether to force HTTPS in the redirect.
+   * @default true
+   */
+  readonly forceHttps?: boolean;
+
+  /**
+   * HTTP redirect code to use.
+   * @default 301
+   */
+  readonly redirectCode?: number;
+}
+
+/**
+ * Redirect configuration interface
+ */
+export interface RedirectConfig {
+  /** Source domain (e.g., buildinginthecloud.com) */
+  readonly sourceDomain: string;
+
+  /** Target domain (e.g., yvovanzee.nl) */
+  readonly targetDomain: string;
+
+  /** Whether to preserve URL path in redirect */
+  readonly preservePath: boolean;
+
+  /** Whether to force HTTPS */
+  readonly forceHttps: boolean;
+
+  /** HTTP redirect status code */
+  readonly redirectCode: number;
+}
+
+/**
  * Mail record configuration constants
  */
 export const MAIL_CONFIG = {
@@ -35,5 +90,5 @@ export const MAIL_CONFIG = {
     { priority: 20, hostName: 'mx02.mail.icloud.com' },
   ] as const,
 
-  TXT_RECORD: 'apple-domain=4Y5uzvmHnOKnBLil',
+  TXT_RECORD: 'apple-domain=Qc2qLE9vanUyATjL',
 } as const;

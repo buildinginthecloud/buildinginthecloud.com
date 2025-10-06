@@ -1,6 +1,7 @@
 import { Stack, App, Duration } from 'aws-cdk-lib';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import { type Construct } from 'constructs';
+import { DomainRedirectStack } from './domain-redirect-stack';
 import type { MailRelayProps } from './types';
 import { MAIL_CONFIG } from './types';
 
@@ -74,7 +75,17 @@ const devEnv = {
 // Create and configure the CDK app
 const app = new App();
 
+// Mail relay stack for email configuration
 new MailRelay(app, 'buildinginthecloud-dev', { env: devEnv });
+
+// Domain redirect stack for buildinginthecloud.com -> yvovanzee.nl
+new DomainRedirectStack(app, 'domain-redirect-dev', {
+  env: devEnv,
+  sourceDomain: 'buildinginthecloud.com',
+  targetDomain: 'yvovanzee.nl',
+});
+
 // new MailRelay(app, 'buildinginthecloud-prod', { env: prodEnv });
+// new DomainRedirectStack(app, 'domain-redirect-prod', { env: prodEnv });
 
 app.synth();

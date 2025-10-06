@@ -52,7 +52,7 @@ exports[`MailRelay Stack snapshot test 1`] = `
         },
         "Name": "test-domain.com.",
         "ResourceRecords": [
-          ""apple-domain=4Y5uzvmHnOKnBLil"",
+          ""apple-domain=Qc2qLE9vanUyATjL"",
           ""v=spf1 include:icloud.com ~all"",
         ],
         "TTL": "1800",
