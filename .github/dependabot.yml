@@ -8,8 +8,6 @@ updates:
     schedule:
       interval: weekly
     ignore:
-      - dependency-name: aws-cdk-lib
-      - dependency-name: aws-cdk
       - dependency-name: projen
     labels:
       - dependencies
@@ -19,5 +17,4 @@ updates:
         patterns:
           - "*"
         exclude-patterns:
-          - aws-cdk*
           - projen

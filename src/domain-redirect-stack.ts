@@ -107,6 +107,7 @@ export class DomainRedirectStack extends Stack {
   /**
    * Creates S3 bucket for storing CloudFront access logs.
    * Requirements: 2.4, 3.4
+   * Security: Implements encryption, versioning, and public access blocking
    */
   private createLogsBucket(): s3.Bucket {
     const logsBucketName = `${this.redirectConfig.sourceDomain.replace(/\./g, '-')}-logs-${this.account}`;
@@ -115,11 +116,21 @@ export class DomainRedirectStack extends Stack {
       bucketName: logsBucketName,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      // Security: Enable encryption at rest using S3-managed keys
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      // Security: Block all public access to logs
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      // Security: Enable versioning for audit trail and data protection
+      versioned: true,
+      // Security: Enforce SSL/TLS for all requests
+      enforceSSL: true,
       lifecycleRules: [
         {
           id: 'DeleteOldLogs',
           enabled: true,
           expiration: Duration.days(90), // Keep logs for 90 days
+          // Also clean up old versions
+          noncurrentVersionExpiration: Duration.days(30),
           transitions: [
             {
               storageClass: s3.StorageClass.INFREQUENT_ACCESS,
@@ -135,13 +146,19 @@ export class DomainRedirectStack extends Stack {
     });
 
     // Grant CloudFront permission to write logs
+    // Security: Follow principle of least privilege - only PutObject permission needed
     logsBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         sid: 'AllowCloudFrontLogging',
         effect: iam.Effect.ALLOW,
         principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
-        actions: ['s3:PutObject', 's3:GetBucketAcl', 's3:PutBucketAcl'],
-        resources: [logsBucket.bucketArn, `${logsBucket.bucketArn}/*`],
+        actions: ['s3:PutObject'],
+        resources: [`${logsBucket.bucketArn}/*`],
+        conditions: {
+          StringEquals: {
+            'aws:SourceAccount': this.account,
+          },
+        },
       }),
     );
 

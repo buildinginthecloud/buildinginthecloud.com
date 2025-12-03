@@ -406,7 +406,7 @@ async function main() {
   
   // Configuration based on environment
   const config: DeploymentConfig = {
-    profile: 'yvovanzee', // AWS profile as mentioned in requirements
+    profile: process.env.AWS_PROFILE || 'yvovanzee', // Configurable via environment variable
     region: process.env.CDK_DEFAULT_REGION || 'eu-west-1',
     stackName: `domain-redirect-${environment}`,
     environment
