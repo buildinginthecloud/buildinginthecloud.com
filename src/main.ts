@@ -10,7 +10,7 @@ import { MAIL_CONFIG } from './types';
 /**
  * A CDK Stack that configures mail relay services using Route53 for Apple iCloud mail services.
  * This stack creates:
- * - A Route53 hosted zone for the domain
+ * - A Route53 hosted zone for the domain (or uses existing one)
  * - SPF record for mail verification
  * - DKIM record for domain key validation
  * - MX records for mail routing
@@ -19,6 +19,7 @@ import { MAIL_CONFIG } from './types';
  * ```typescript
  * new MailRelay(app, 'MailRelayStack', {
  *   domainName: 'example.com',
+ *   hostedZoneId: 'Z123456789', // optional: use existing hosted zone
  * });
  * ```
  */
@@ -45,33 +46,32 @@ export class MailRelay extends Stack {
       this.hostedZone = new route53.PublicHostedZone(this, 'HostedZone', {
         zoneName: domainName,
       });
-
-      // Only create mail records when creating a new hosted zone
-      // (existing zone already has these records)
-
-      // Create a TXT Record for apple mail verification (SPF)
-      new route53.TxtRecord(this, 'TXTRecord', {
-        zone: this.hostedZone,
-        values: [MAIL_CONFIG.TXT_RECORD, MAIL_CONFIG.SPF_RECORD],
-        ttl: Duration.seconds(MAIL_CONFIG.TTL),
-      });
-
-      // Create CNAME record for DKIM validation
-      new route53.CnameRecord(this, 'DKIMRecord', {
-        zone: this.hostedZone,
-        recordName: `sig1._domainkey.${domainName}`,
-        domainName: `sig1.dkim.${domainName}.at.icloudmailadmin.com`,
-        ttl: Duration.seconds(MAIL_CONFIG.TTL),
-      });
-
-      // Create MX Record pointing to iCloud mail servers
-      new route53.MxRecord(this, 'MXRecord', {
-        zone: this.hostedZone,
-        recordName: domainName,
-        values: [...MAIL_CONFIG.MX_RECORDS],
-        ttl: Duration.seconds(MAIL_CONFIG.TTL),
-      });
     }
+
+    // Create mail records (regardless of whether hosted zone is new or imported)
+
+    // Create a TXT Record for apple mail verification (SPF)
+    new route53.TxtRecord(this, 'TXTRecord', {
+      zone: this.hostedZone,
+      values: [MAIL_CONFIG.TXT_RECORD, MAIL_CONFIG.SPF_RECORD],
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
+    });
+
+    // Create CNAME record for DKIM validation
+    new route53.CnameRecord(this, 'DKIMRecord', {
+      zone: this.hostedZone,
+      recordName: `sig1._domainkey.${domainName}`,
+      domainName: `sig1.dkim.${domainName}.at.icloudmailadmin.com`,
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
+    });
+
+    // Create MX Record pointing to iCloud mail servers
+    new route53.MxRecord(this, 'MXRecord', {
+      zone: this.hostedZone,
+      recordName: domainName,
+      values: [...MAIL_CONFIG.MX_RECORDS],
+      ttl: Duration.seconds(MAIL_CONFIG.TTL),
+    });
   }
 }
 
@@ -95,7 +95,7 @@ const DOMAIN_NAME = 'buildinginthecloud.com';
 const app = new App();
 
 // Mail relay stack for email configuration (uses existing hosted zone)
-new MailRelay(app, 'mail-relay', {
+new MailRelay(app, 'buildinginthecloud-mail-relay', {
   env: devEnv,
   domainName: DOMAIN_NAME,
   hostedZoneId: HOSTED_ZONE_ID, // Use existing hosted zone
