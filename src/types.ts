@@ -1,4 +1,5 @@
 import type { StackProps } from 'aws-cdk-lib';
+import type * as route53 from 'aws-cdk-lib/aws-route53';
 
 /**
  * Configuration properties for the MailRelay stack
@@ -12,66 +13,75 @@ export interface MailRelayProps extends StackProps {
   readonly domainName?: string;
 
   /**
-   * The target domain name for HTTPS redirect.
-   * All HTTP/HTTPS traffic to the domain will be redirected to this target domain.
-   * @default 'yvovanzee.nl'
+   * The ID of an existing Route53 hosted zone to use.
+   * If provided, the stack will import this zone instead of creating a new one.
+   * @example 'Z005047721YOSJOMI0XAF'
    */
-  readonly targetDomainName?: string;
+  readonly hostedZoneId?: string;
 }
 
 /**
- * Configuration properties for the DomainRedirect stack
+ * Configuration properties for the GitHubOidc stack
  */
-export interface DomainRedirectProps extends StackProps {
+export interface GitHubOidcProps extends StackProps {
   /**
-   * The source domain name that will redirect to the target domain.
+   * The GitHub repository owner/organization.
+   * @default 'buildinginthecloud'
+   */
+  readonly githubOwner?: string;
+
+  /**
+   * The GitHub repository name.
    * @default 'buildinginthecloud.com'
    */
-  readonly sourceDomain?: string;
-
-  /**
-   * The target domain name where traffic will be redirected.
-   * @default 'yvovanzee.nl'
-   */
-  readonly targetDomain?: string;
-
-  /**
-   * Whether to preserve the URL path in the redirect.
-   * @default true
-   */
-  readonly preservePath?: boolean;
-
-  /**
-   * Whether to force HTTPS in the redirect.
-   * @default true
-   */
-  readonly forceHttps?: boolean;
-
-  /**
-   * HTTP redirect code to use.
-   * @default 301
-   */
-  readonly redirectCode?: number;
+  readonly githubRepo?: string;
 }
 
 /**
- * Redirect configuration interface
+ * Configuration properties for the AmplifyHosting stack
  */
-export interface RedirectConfig {
-  /** Source domain (e.g., buildinginthecloud.com) */
-  readonly sourceDomain: string;
+export interface AmplifyHostingProps extends StackProps {
+  /**
+   * The domain name for the website.
+   * @default 'buildinginthecloud.com'
+   */
+  readonly domainName?: string;
 
-  /** Target domain (e.g., yvovanzee.nl) */
-  readonly targetDomain: string;
+  /**
+   * The GitHub repository owner/organization.
+   * @default 'buildinginthecloud'
+   */
+  readonly githubOwner?: string;
 
-  /** Whether to preserve URL path in redirect */
-  readonly preservePath: boolean;
+  /**
+   * The GitHub repository name.
+   * @default 'buildinginthecloud.com'
+   */
+  readonly githubRepo?: string;
 
-  /** Whether to force HTTPS */
-  readonly forceHttps: boolean;
+  /**
+   * The name of the AWS Secrets Manager secret containing the GitHub OAuth token.
+   * @default 'github-token'
+   */
+  readonly githubTokenSecretName?: string;
 
-  /** HTTP redirect status code */
-  readonly redirectCode: number;
+  /**
+   * The branch name to deploy.
+   * @default 'main'
+   */
+  readonly branchName?: string;
+
+  /**
+   * The Route53 hosted zone for the domain.
+   * If provided, custom domain will be configured.
+   */
+  readonly hostedZone?: route53.IHostedZone;
+
+  /**
+   * The root directory of the app in the monorepo.
+   * @default 'buildinginthecloud'
+   */
+  readonly appRoot?: string;
 }
 
 /**

@@ -12,7 +12,6 @@ describe('MailRelay Stack', () => {
     app = new App();
     stack = new MailRelay(app, 'TestStack', {
       domainName: 'test-domain.com',
-      targetDomainName: 'target-domain.com',
     });
     template = Template.fromStack(stack);
   });

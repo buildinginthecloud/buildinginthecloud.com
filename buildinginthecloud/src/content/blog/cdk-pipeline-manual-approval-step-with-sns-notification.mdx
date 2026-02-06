@@ -1,0 +1,134 @@
+---
+title: "CDK Pipeline manual approval step with SNS notification"
+description: "How to implement a manual approval step with SNS notifications in CDK Pipelines using arbitrary CodePipeline actions."
+date: "2022-10-19"
+tags: ["AWS", "CDK", "Pipeline", "DevOps"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-pipeline-sns-cover.jpg"
+---
+
+## Background
+
+At the enterprise where I work as a Cloud Consultant at the moment, we have implemented extra security on our pipelines. Our code changes are following the DTAP model. Basically the code is first deployed to DevTest, then to UAT and then to Production. CDK Pipelines is the orchestrator here. Between our UAT and Production accounts, a manual approval is implemented, so all code changes need to be approved before going in to production.
+
+## Problem
+
+With CDK Pipelines this is a simple step to add to your Production stage. You can use the [pre](https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.pipelines/StageDeployment.html#aws_cdk.pipelines.StageDeployment.pre) within StageDeployment functionality to add a manual approval.
+
+```python
+# retrieve accounts with variables from cdk.json
+accounts= self.node.try_get_context("accounts")
+
+for account in accounts:
+    pipeline.add_stage(
+        Application(
+            self,
+            f"{account}".lower(),
+            env={"account": accounts[account]["account_id"], "region": accounts[account]["region"]},
+            account_name=account,
+        ),
+        # Add manual approval between uat and prd stage
+        pre=None if account != "prd" else [pipelines.ManualApprovalStep("PromoteToProd")],
+    )
+```
+
+## Solution
+
+But we are missing a piece here.
+
+*So what is better to have than a manual approval within your CDK pipeline?*
+
+A manual approval with SNS Topic for sending notifications on pending approvals of course.
+
+Well, exactly that is a problem with CDK pipelines at the moment. When using CDK version 2 and the new modern API for pipeline, using the CodePipelineEngine, it is not possible out of the box to have a manual approval with SNS topic configuration.
+
+The [ManualApprovalStep](https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.pipelines/ManualApprovalStep.html) only supports adding a comment to the manual approval. This is strange, because the normal [CodePipeline Actions](https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_codepipeline_actions/ManualApprovalAction.html) construct does support adding a SNS notification topic.
+
+Luckily CDK Pipelines does support an escape hack in the form of [arbitrary CodePipeline actions](https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.pipelines/README.html#arbitrary-codepipeline-actions).
+
+## Arbitrary CodePipeline Action
+
+To implement an arbitrary CodePipeline action because the CDK Pipeline does not support the manual approval step with SNS notifications you need to define your own step class that extends Step and implements ICodePipelineActionFactory.
+
+Here is the example for the manual approval class:
+
+```python
+@jsii.implements(pipelines.ICodePipelineActionFactory)
+class ManualApprovalWithSNSStep(pipelines.Step):
+    """
+    Create an Arbitrary CodePipeline step to enable SNS with manual approval
+    """
+
+    def __init__(self, id_, topic: aws_sns.ITopic):
+        super().__init__(id_)
+
+        self.topic = topic
+
+    @jsii.member(jsii_name="produceAction")
+    def produce_action(
+        self,
+        stage: aws_codepipeline.IStage,
+        options: pipelines.ProduceActionOptions,
+    ) -> pipelines.CodePipelineActionFactoryResult:
+        stage.add_action(
+            aws_codepipeline_actions.ManualApprovalAction(
+                action_name=options.action_name,
+                additional_information="please approve",
+                run_order=options.run_order,
+                notification_topic=self.topic,
+            )
+        )
+
+        return pipelines.CodePipelineActionFactoryResult(run_orders_consumed=1)
+```
+
+Let us break it down. We need to implement the ICodePipelineActionFactory from CDK pipelines. It "extends" the pipelines.Step functionality. In the `__init__` function we also expect a SNS topic besides the id. This self.topic is later used in the Action. The real construct we will be using here, is an `aws_codepipeline_actions.ManualApprovalAction`. This is the standard CodePipeline construct with the SNS topic configuration available.
+
+In our pipeline, the ARN of the monitoring SNS topic, is available via SSM parameter store. To actually use this new Class:
+
+```python
+pre=None
+if account != "prd"
+else [
+    ManualApprovalWithSNSStep(
+        "PromoteToProd",
+        topic=aws_sns.Topic.from_topic_arn(
+            self,
+            "MonitoringTopic",
+            topic_arn=aws_ssm.StringParameter.from_string_parameter_name(
+                self, "SNSMonitoringTopicArn", "/cdp/sns/monitoring_arn"
+            ).string_value,
+        ),
+    )
+],
+```
+
+This will result in CloudFormation code:
+
+```json
+{
+    "ActionTypeId": {
+        "Category": "Approval",
+        "Owner": "AWS",
+        "Provider": "Manual",
+        "Version": "1"
+    },
+    "Configuration": {
+        "NotificationArn": {
+        "Ref": "SNSMonitoringTopicArnParameter"
+        },
+        "CustomData": "please approve"
+    },
+    "Name": "PromoteToProd",
+    "RunOrder": 1
+}
+```
+
+## Conclusion
+
+In this blog I have shown how to use an arbitrary CodePipeline Step with CDK Pipelines (in Python). As the generated example in the CDK documentation took a while to understand and use for ourselves, I have created a real world example for you to use.
+
+---
+
+*Have questions about CDK Pipelines? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

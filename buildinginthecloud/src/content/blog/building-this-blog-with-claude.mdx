@@ -1,0 +1,170 @@
+---
+title: "Building This Blog with Claude: AI-Assisted Development in Practice"
+description: "In this article I will describe how I built this entire blog in a single day using Claude as my pair programmer, including the tech stack decisions, design iterations, and lessons learned."
+date: "2026-02-02"
+tags: ["AI", "Next.js", "TypeScript", "Developer Experience"]
+featured: true
+author: "Yvo van Zee"
+---
+
+In my day-to-day job as a Cloud Consultant, I work a lot with Infrastructure as Code. But when it comes to building personal projects like this blog, I wanted to try something different: using AI as a development partner.
+
+In this article I will describe how I built this entire website in a single day with Claude as my pair programmer. The idea is not just to show off the end result, but to share the process, the iterations, and what I learned about AI-assisted development along the way.
+
+## Prerequisites
+
+Before we dive in, a few notes on what you should be familiar with:
+
+- Basic knowledge of Next.js and React
+- Understanding of TypeScript
+- Familiarity with Tailwind CSS
+
+I will not explain these technologies in detail, as I will focus on the development process and AI collaboration aspects.
+
+## The Starting Point
+
+Like any good project, I started with documentation. I wrote a detailed specification covering everything I wanted:
+
+- A modern Next.js 14 blog using the App Router
+- MDX support for rich content with code syntax highlighting
+- Dark and light theme support
+- A design that feels uniquely mine
+- All the essential features: RSS feed, sitemap, SEO optimization
+
+The spec was around 10 phases, covering everything from project setup to deployment. I handed this to Claude and we started working through it systematically.
+
+## Setting Up the Foundation
+
+The first phase went remarkably fast. Within minutes, we had the project scaffolded:
+
+```bash
+npx create-next-app@latest buildinginthecloud --typescript --tailwind --eslint --app
+```
+
+We then installed all the dependencies needed for a full-featured blog:
+
+```bash
+npm install @mdx-js/mdx @mdx-js/react gray-matter reading-time
+npm install rehype-pretty-code rehype-slug rehype-autolink-headings shiki
+npm install next-themes fuse.js feed
+```
+
+What would normally take me an hour of setup, research, and configuration was done in about fifteen minutes. The AI handled all the boilerplate while I focused on reviewing and understanding the code.
+
+## The Design Challenge
+
+Here is where things got interesting. The first design Claude produced was clean and professional, but it looked too similar to other tech blogs I had seen. It did not feel like *me*.
+
+So I gave feedback: "This looks too much like other sites. Let's make it more uniquely ours."
+
+Claude asked me a few questions about my preferences:
+
+- What color scheme speaks to you?
+- What layout style do you prefer?
+- How would you describe your personal brand?
+
+I chose a teal/cyan color scheme for that fresh, modern feel, a magazine-style layout, and described my personal brand as "tech enthusiast."
+
+## Three Design Iterations
+
+What followed was a fascinating process of iteration. Let me walk you through each version.
+
+### Version 1: Fun and Playful
+
+Claude went all-in on the "fun tech enthusiast" direction. The design included a terminal animation in the hero section showing `cdk deploy --all`, emoji icons on blog cards based on tags, floating animated badges, and playful copy like "Turning coffee into cloud infrastructure."
+
+It was vibrant and unique. Perhaps a bit *too* vibrant for a professional blog.
+
+### Version 2: Professional Pullback
+
+I asked for something more professional. Claude pivoted to a more subdued design: removed the animations, replaced emojis with icons, toned down the playful copy, and switched to a navy/slate color scheme.
+
+It was professional, but honestly? A bit boring. I had lost what made it uniquely mine.
+
+### Version 3: The Balance
+
+I realized the fun elements were what made the site distinctive. So we brought back the personality while keeping it polished. The result is what you see now: the terminal animation is back, the teal colors pop without being overwhelming, and the copy has character without being unprofessional.
+
+The key learning here: do not be afraid to iterate. And do not be afraid to say "actually, I liked it better before."
+
+## The Tech Stack
+
+For those interested in the technical details, here is what powers this blog:
+
+| Technology | Purpose |
+|------------|---------|
+| Next.js 14 | Framework with App Router |
+| TypeScript | Type safety throughout |
+| Tailwind CSS | Styling with custom CSS variables |
+| MDX | Rich content with React components |
+| next-mdx-remote | Server-side MDX compilation |
+| rehype-pretty-code + Shiki | Syntax highlighting |
+| next-themes | Dark/light mode |
+| Fuse.js | Client-side search |
+| feed | RSS generation |
+
+The architecture follows standard Next.js patterns: the App Router for routing, server components where possible, and client components only when needed for interactivity.
+
+## Debugging Adventures
+
+It was not all smooth sailing. We hit a few issues worth mentioning.
+
+### Google Fonts Issue
+
+The build kept failing because Next.js could not fetch Google Fonts in the build environment. The solution was simple: switch to system fonts. Sometimes the easiest fix is the best one.
+
+### The useSearchParams Suspense Boundary
+
+React's `useSearchParams` hook requires a Suspense boundary in Next.js 14. The error message was not immediately clear, but the fix was straightforward:
+
+```tsx
+<Suspense fallback={<div>Loading filters...</div>}>
+  <TagFilter tags={allTags} />
+</Suspense>
+```
+
+### SWC Binary Download
+
+Network issues in the cloud environment prevented the SWC compiler from downloading. Installing the WASM fallback package resolved it:
+
+```bash
+npm install @next/swc-wasm-nodejs
+```
+
+## What I Learned About AI-Assisted Development
+
+After building this entire blog with Claude, here are my observations.
+
+### Where AI Excels
+
+Scaffolding and boilerplate is where AI really shines. Setting up projects, creating components, writing configuration files. All the repetitive tasks that normally eat up time are handled quickly and correctly.
+
+Rapid iteration is another strength. Want to try a different color scheme? A different layout? The AI can implement changes in seconds, letting you focus on evaluating the results.
+
+Problem solving surprised me. When we hit bugs, Claude could often identify the issue and propose solutions faster than I could search through documentation.
+
+Consistency was excellent too. Once we established patterns, the AI maintained them across all components without me having to remind it.
+
+### Where Human Judgment Matters
+
+Design direction is yours to own. The AI can execute any design you describe, but it cannot tell you what feels right. You need to guide the aesthetic.
+
+Business decisions remain in your hands. Tech stack choices, architecture decisions, what features to prioritize. These are yours to make.
+
+Knowing when to stop is crucial. The AI will keep iterating forever if you let it. Knowing when something is good enough requires human judgment.
+
+## What Is Next
+
+This blog is just the beginning. The roadmap includes migrating existing content from my Hashnode blog, setting up the newsletter backend, deploying to AWS Amplify with CDK, and adding analytics and more search features.
+
+## Conclusion
+
+Building this blog with Claude was a genuinely productive experience. It felt less like using a tool and more like collaborating with a colleague who types incredibly fast and never gets tired.
+
+Is AI going to replace developers? No. But AI as a development partner? That is something I will definitely be using more of.
+
+The full source code for this blog is available on [GitHub](https://github.com/buildinginthecloud). Feel free to explore, fork, or reach out if you have questions.
+
+---
+
+*Want to discuss AI-assisted development or cloud architecture? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

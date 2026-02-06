@@ -1,0 +1,176 @@
+---
+title: "Vibe Coding with Amazon Q"
+description: "Exploring how Amazon Q's agentic coding capabilities helped me write a Java unit test for cdk-nag, including lessons learned about AI-assisted development."
+date: "2025-05-23"
+tags: ["AWS", "CDK", "Java", "AI"]
+featured: true
+author: "Yvo van Zee"
+coverImage: "/images/blog/vibe-coding-with-amazon-q-cover.jpeg"
+---
+
+## Background
+
+So at my current assignment, I am helping an "ESB" team with migrating from on-premise to the AWS. Their landscape is mainly containers on EKS Fargate and CDK Java as Infrastructure as Code (IaC). As my current Java skills are a bit rusty, last time I touched Java was during college 22 years ago. I am used to write CDK in TypeScript or Python.
+
+Within the company, there are a couple of AWS accounts available; a Sandbox, an Internal and a Public account. Because the ESB application lives in an Internal account, due to data classification, external parties have to jump some hoops to get to the Fargate containers on the EKS cluster.
+
+## Architecture
+
+Here is where my job comes in, I have to develop the ingress flow for the ESB application.
+
+At the moment there is a third party DDOS protection service where the traffic is coming from. From there the traffic is forwarded to a special AWS account, called shared-ingress. In this account a Gateway Load Balancer will forward all traffic to an security-ingress account to be validated and inspected. If traffic is approved, it will be send back to the shared-ingress account to land in a private subnet on an Application Load Balancer. This load balancer will forward the traffic to the ESB internal account. To forward traffic from the load balancer to the internal account traffic, everything is hooked up via a Transit Gateway.
+
+So looking at the IaC for the application, it is quite straightforward. Deploy an Application Load Balancer, create a target group, some listeners and certificates. So this is not the part I want to focus on.
+
+## Problem
+
+Where I want to focus on is the security and compliance tool [cdk-nag](https://github.com/cdklabs/cdk-nag). Cdk-nag is tool which you can use to check your CDK applications on certain rule sets like HIPPA Security, NIST800 and PCI. Where it comes down to is, if you create your infrastructure without any warnings or errors from cdk-nag, your security hub will not light up as a Christmas tree and you will be on the safe side. Who does not want to create infrastructure as code following best practices.
+
+So I have implemented cdk-nag in the applications and stacks. So in the part where you define the Infrastructure as Code. This was according to a colleague Java developer not the right place. His argument was that cdk-nag is more administrative tasks which should end up in the testing phase and not in the declaration phase. Also looking at the [blog](https://aws.amazon.com/blogs/devops/manage-application-security-and-compliance-with-the-aws-cloud-development-kit-and-cdk-nag/) on AWS, I saw that it was possible to do so, so challenge accepted. Unfortunately here my rusty Java skill came to the surface.
+
+Writing the test in the test directory looked fine:
+
+```java
+@Test
+    public void testCdkNag() {
+        // GIVEN
+        App app = new App();
+
+        // WHEN
+        var stack = new IngressLoadbalancerStack(app, "CdkNagTestStack", StackProps.builder()
+                .env(Environment.builder()
+                        .account("1234567890")
+                        .region("eu-central-1")
+                        .build())
+                .build());
+
+        // Add CDK NAG to check for AWS Solutions best practices
+        Aspects.of(stack).add(new AwsSolutionsChecks());
+
+        // Synthesize the stack to ensure all validations run
+        app.synth();
+    }
+```
+
+Even the test result showed that it was all good:
+
+```bash
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running nl.customer.aws.esb.shared.IngressLoadbalancerTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.039 s
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] BUILD SUCCESS
+```
+
+Because earlier I used the cdk-nag in the declaration phase, I knew that at least 1 error should pop up to the surface, also commented out in the above snippet, **AwsSolutions-EC23.** This error nagged about that port 80 and 443 are configured to be opened for everyone, and should be limited. So where I would expect the error to pop up, it did not. So the test looked fine, but is not doing the job correctly.
+
+So let us dive in. Because I lack the correct Java knowledge, who better to ask than Amazon Q. Time for some prompt engineering. Looking at the blog, I want what was written there, but then for Java. So Q, do your magic here:
+
+*"It seems that my cdknag is not working in my unit test. I expect an error on AwsSolutions-EC23 as outcome, but my tests say everything ran successfully. What I want is this TypeScript code, see snippet, but then for Java."*
+
+```typescript
+import { Annotations, Match } from 'aws-cdk-lib/assertions';
+import { App, Aspects, Stack } from 'aws-cdk-lib';
+import { AwsSolutionsChecks } from 'cdk-nag';
+import { CdkTestStack } from '../lib/cdk_test-stack';
+
+describe('cdk-nag AwsSolutions Pack', () => {
+  let stack: Stack;
+  let app: App;
+
+  beforeAll(() => {
+    // GIVEN
+    app = new App();
+    stack = new CdkTestStack(app, 'test');
+
+    // WHEN
+    Aspects.of(stack).add(new AwsSolutionsChecks());
+  });
+
+  // THEN
+  test('No unsuppressed Warnings', () => {
+    const warnings = Annotations.fromStack(stack).findWarning(
+      '*',
+      Match.stringLikeRegexp('AwsSolutions-.*')
+    );
+    expect(warnings).toHaveLength(0);
+  });
+
+  test('No unsuppressed Errors', () => {
+    const errors = Annotations.fromStack(stack).findError(
+      '*',
+      Match.stringLikeRegexp('AwsSolutions-.*')
+    );
+    expect(errors).toHaveLength(0);
+  });
+});
+```
+
+With the new agentic approach of Amazon Q, Q guides you through all the steps taken:
+
+```bash
+I'll help you implement the advanced unit testing for your SecurityComplianceTest
+using the CDK Assertions library, similar to the TypeScript example you provided
+but adapted for Java.
+
+Let me first check what dependencies you might need for this implementation:
+1 directory listed
+
+Let me check the pom.xml to understand the dependencies available:
+1 file read
+
+Now I'll update your SecurityComplianceTest.java file to include the advanced
+testing functionality similar to the TypeScript example:
+
+I've updated your SecurityComplianceTest.java file with the advanced unit testing
+approach for cdk-nag. Here's what I've implemented:
+
+1. Added the necessary imports for AWS CDK Assertions library
+2. Restructured the test class to follow the pattern from your example
+3. Implemented two main test methods for warnings and errors
+```
+
+Again, due to my lack in Java knowledge, the code looked fine. But when I tried to run the test, it failed. So I supplied the error to Q again.
+
+After several iterations of error messages and fixes, Amazon Q helped me resolve compilation issues with types, final variables, and the correct way to access the `SynthesisMessage` objects.
+
+When testing with commenting the suppression and in code removed a logging bucket entry for the load balancer, I received a failed test with a correct output:
+
+```bash
+➜  internet-shared-infra git:(feat/cdk-nag_to_test) ✗ mvn test -Dtest=SecurityComplianceTest
+
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running nl.customer.aws.esb.shared.SecurityComplianceTest
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.332 s <<< FAILURE!
+[ERROR] nl.customer.aws.esb.shared.SecurityComplianceTest.testNoUnsuppressedErrors -- Time elapsed: 0.033 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+Found 2 unsuppressed error:
+ - error #1: Resource=/TestStack/ALBSecurityGroup/Resource, Message=AwsSolutions-EC23: The Security Group allows for 0.0.0.0/0 or ::/0 inbound access.
+ - error #2: Resource=/TestStack/CrossAccountALB/Resource, Message=AwsSolutions-ELB2: The ELB does not have access logs enabled.
+
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0
+[INFO]
+[INFO] BUILD FAILURE
+```
+
+## Lessons learned
+
+Amazon Q helped me with writing my Unit test based upon cdk-nag. With Vibe Coding being a bit of a buzz word, I do think coding agents like Amazon Q can help you in your day to day job. What my lessons learned are:
+
+1. **Know your problem**. In my case, I knew that the output in the test was wrong as I had cdk-nag working before with output. So by moving the code to the Unit tests, it seemed alright, but it was not.
+2. Always **verify** the output, do not take it for granted. This is where knowledge comes in to play as well. By understanding your problem and knowing your output, the tools to get there are more scoped and can help you by steering the agent.
+3. You need to **iterate**. Like in normal day to day work, you need to polish, scrape, work it again, start over and all the other techniques to come to the end solution. With a coding agent it is not different.
+
+And to quote Spiderman: With great powers, comes great responsibilities!
+
+---
+
+*Have questions about AI-assisted development or cdk-nag? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

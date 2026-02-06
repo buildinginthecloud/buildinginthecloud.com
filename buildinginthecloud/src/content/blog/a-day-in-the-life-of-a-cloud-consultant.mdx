@@ -1,0 +1,91 @@
+---
+title: "A day in the life of a Cloud Consultant"
+description: "A real-world story about debugging a mysterious CDK synth error and the journey to find a workable solution."
+date: "2022-06-14"
+tags: ["AWS", "CDK", "Cloud Consultant"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/day-in-life-cover.png"
+---
+
+## Background
+
+So it has been a while since my last blog. This was mainly due to a problem we have encountered with a customer with their CDK application. At the moment I am still working for an enterprise in the financial sector, where I have joined a data analytics team which is building a data platform in AWS. This data platform is using services like DataSync, S3, Glue, EMR, Athena, LakeFormation and Managed Workflow for Apache Airflow (MWAA).
+
+The complete application is created with CDK in Python. It is leveraging CDK Pipelines to deploy the application to multiple AWS accounts.
+
+With our CDK data platform application ready on the test AWS account, we wanted to deploy to UAT (acceptance) as well. As we are using CDK pipelines that is simply just adding an extra stage to the pipeline.
+
+All was fine until a certain moment. Synthesising was not what it used to be. OK a bit dramatic here, but it felt like that typical Monday morning when everything went south. Did I forget my coffee? Was it a change in operating system packages, so at least we could blame it on someone/something...
+
+But no...
+
+The only message we got was:
+
+> Malformed request, "API" field is required
+
+As this error did not make any sense to us, we started debugging. Let me take you on our adventure.
+
+## Real World Scenario
+
+As described in the Background section, what happened on that typical Monday morning kinda day, we could not synthesize our CDK application anymore. Normally our flow was, developing locally, CDK synthesizing and running tests to make sure everything is ok, make pull requests, let someone review it (4-eyes), merge and let the pipeline do its magic.
+
+This time when running the `cdk synth` command locally, it resulted with a stack trace error:
+
+```powershell
+(.venv) PS H:\Code\repository> cdk synth
+Error: Malformed request, "api" field is required
+    at KernelHost.processRequest
+    at KernelHost.run
+```
+
+So what now. Well of course you ask Google what that `Malformed request` error means. The first answer Google gives you is a [Github issue of the CDK project](https://github.com/aws/aws-cdk/issues/15088). What a relief, we were not alone with this issue. But reading up on the issue it looked like the investigation took place was not suitable for our problem. Eventually we did not create over 500 resources. The biggest "stack" was only 115 resources. And all stacks combined were under 200.
+
+We updated the GitHub issue with our own part of the story. Also we created an AWS Support ticket, as the customer has an enterprise contract with AWS.
+
+## Workaround
+
+In the meantime we did try to work around our problem. One way was to minimize our CloudFormation outputs. As we were trying to start the phase of performance and security testing of a small piece of the application in UAT, we did not need to deploy the complete application as deployed in DevTest.
+
+But with this partial deployment, we were now stuck. As adding extra resources would mean again that Malformed request error. So what was it that triggered this error? We looked at the codebase to check if loops or other things could be found as a cause. Was it the extra AWS account which was added? Was it a node version upgrade, or even the CDK version?
+
+All possible root cause scenarios were covered, but none actually brought satisfaction or a pinpointed cause of the problem. It felt like we were running in circles.
+
+So we made a list of four alternative options:
+
+### Option 1: Manually Deploy in UAT/PRD
+
+Rewrite the current app.py file and deploy loose stacks towards the UAT and PRD accounts. **Impediment**: We do not have access to deploy resources with the developer role in UAT and PRD.
+
+### Option 2: Use CodeBuild service to deploy manually
+
+Where we do the synth action to generate the CloudFormation templates within CodeBuild, we can also do a "cdk deploy" to deploy stacks. **Impediment**: It will be manual work to keep CodeBuild buildspec files in sync between the accounts.
+
+### Option 3: Separate CDK pipelines per stacks
+
+Create multiple CDK pipelines which are responsible for 1 single stack task, instead of multiple stacks. **Impediment**: Extra resources will be provisioned. This could mean extra costs.
+
+### Option 4: Rewrite codebase to Typescript
+
+Use the CDK native implementation using Typescript instead of Python, so the JSII framework is not needed anymore. **Impediment**: Rewriting all code towards Typescript requires significant effort.
+
+## Solution
+
+With all the options listed it was up to the team and the product owner to make a decision. Eventually we went with option 3.
+
+The final solution was to chop up the application. To do so we had to created two more constructs as reusable building blocks:
+
+- secure repository construct
+- secure pipeline construct
+
+With those constructs in place it was easy to create a secure CDK project (app) which was following the guidelines set by the security team. As we already had all the code in place, the only thing we needed to change was leveraging Systems Manager Parameters (SSM) more to pass through certain ARNs between CDK applications.
+
+## Summary
+
+What I tried to write down was a day, or more a month in the life of a Cloud Consultant. What impediments we have encountered and that it is not always a happy flow. But especially looking beyond the problem and finding that solution which works gives satisfaction.
+
+So keep learning and challenging yourself every day!
+
+---
+
+*Have questions about CDK or cloud consulting? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

@@ -10,15 +10,15 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   authorOrganization: true,
   name: 'buildinginthecloud.com',
   description: 'CDK code for buildingthecloud.com',
-  cdkVersion: '2.219.0',
+  cdkVersion: '2.237.1',
   cdkVersionPinning: true,
   defaultReleaseBranch: 'main',
   packageManager: NodePackageManager.NPM,
   projenVersion: '0.97.0', // Find the latest projen version here: https://www.npmjs.com/package/projen
   projenrcTs: true,
   release: false,
-  deps: ['projen-pipelines', 'aws-cdk-github-oidc'],
-  devDeps: ['projen-pipelines', 'aws-cdk-github-oidc'],
+  deps: ['projen-pipelines', 'aws-cdk-github-oidc', '@aws-cdk/aws-amplify-alpha'],
+  devDeps: ['projen-pipelines', 'aws-cdk-github-oidc', '@aws-cdk/aws-amplify-alpha'],
   prettier: true,
   prettierOptions: {
     settings: {

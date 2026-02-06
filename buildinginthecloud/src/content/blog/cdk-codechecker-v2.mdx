@@ -1,0 +1,250 @@
+---
+title: "CDK CodeChecker v2: Breaking Free from Third-Party Dependencies"
+description: "Learn how to rebuild the CDK CodeChecker using AWS native resources, eliminating third-party construct dependencies for better maintainability."
+date: "2024-05-08"
+tags: ["AWS", "CDK", "Code Review", "Infrastructure as Code"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-codechecker-v2-cover.jpeg"
+---
+
+## Background
+
+Have you ever relied on a tool only to have it unexpectedly fail? I recently experienced this with CodeChecker, a tool that automatically checks Pull Requests. Despite no code changes, it suddenly stopped working. Upon investigation, it became clear that the underlying software had become deprecated.
+
+As you might have seen in my previous blogs, I like to use the Cloud Development Kit (CDK) for my daily Infrastructure as Code (IaC) work with AWS. During my current assignment, creating a data analytics platform for an enterprise in the financial sector, we are using the [CDK CodeChecker](https://yvovanzee.nl/cdk-codechecker) a lot. It helps us streamline the development process, keep code quality high, make peer reviews a standard, and test changes in an automated manner.
+
+## Real World Scenario
+
+In my current assignment, we encountered a problem with the CodeChecker. The problem is in the 3rd party cloud components construct we are using. It seems that the construct is not maintained by the creator/community. So now it raises the following warning:
+
+```bash
+[WARNING] aws-cdk-lib.CustomResourceProviderRuntime#NODEJS_14_X is deprecated.
+```
+
+The warning basically means that AWS has NodeJS 14 deprecated and you should use higher versions of node. When you fix this with for example an aspect that bumps your Lambda functions versions used by the custom resource, you will enter in new errors like:
+
+```plaintext
+10:22:02 AM | CREATE_FAILED | Custom::ApprovalRuleTemplate
+Received response status [FAILED] from custom resource. Message returned:
+Error: Cannot find module 'aws-sdk'
+```
+
+Long story short, it is broken. And, since this is a high-level L3 CDK Construct, a lot has been taken care of and abstracted away. Another problem we had with this construct was that it was not compliant according to the security framework used by the enterprise. So it felt a bit like a *houtje-touwtje* (Band-Aid) solution. So as the current problems made the CodeChecker failing completely it was time to make an own version.
+
+## Solution
+
+There are three solutions to the problem:
+
+1. **Contributing to the Cloud Components repository**. Unfortunately, this option was doomed for failure as the project is not maintained and a lot of open pull requests from other developers are still pending.
+2. **Creating a fork** of the Cloud Components repository and start maintaining ourselves. The problem here is that the Cloud Components repository consisted of more software than only the CodeChecker.
+3. **Simplify the CodeChecker using Standard CDK libraries**. Eventually, this felt best and required the least amount of maintainability!
+
+Let us optimize the CDK CodeChecker to version 2.0.
+
+## Go Build
+
+We want to get rid of the cloudcomponents construct. The main responsibility for the cloudcomponents construct is to create an approval template, assign it to a repository and create a codebuild project. For the last there is CDK/CloudFormation integration, but for the first two there is not. It is basically 1 API call for creation of an approval template, and 1 for the assign to the repository. So how can we tackle this. Well CDK has a custom resource framework especially for single API calls, called the [AwsCustomResource](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.custom_resources/AwsCustomResource.html).
+
+Looking at the [documentation](https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-create-template.html) of how to create an approval template, you can use a json template:
+
+```python
+import json
+
+template = {
+    'Version': '2018-11-08',
+    'DestinationReferences': [f'refs/heads/{branch}'],
+    'Statements': [
+        {
+            'Type': 'Approvers',
+            'NumberOfApprovalsNeeded': required_approvals,
+            'ApprovalPoolMembers': [
+                f'arn:aws:sts::{Stack.of(self).account}:assumed-role/developer/*',
+                f'arn:aws:sts::{Stack.of(self).account}:assumed-role/{self.codechecker_role.role_name}/*',
+            ]
+        }
+    ]
+}
+json_string = json.dumps(template)
+```
+
+### Approval template
+
+Now create the approval template with the AwsCustomResource:
+
+```python
+from aws_cdk import (
+    custom_resources,
+    aws_ec2
+)
+
+create_approval_template = custom_resources.AwsCustomResource(
+    self,
+    f'CreateApprovalTemplateFor{branch}On{repository_name}',
+    on_create=custom_resources.AwsSdkCall(
+        service='CodeCommit',
+        action='createApprovalRuleTemplate',
+        physical_resource_id=custom_resources.PhysicalResourceId.of(
+            f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}'
+        ),
+        parameters={
+            'approvalRuleTemplateName': f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}',
+            'approvalRuleTemplateDescription': f'Requires {required_approvals} approvals from the team',
+            'approvalRuleTemplateContent': json_string,
+        }
+    ),
+    on_update=custom_resources.AwsSdkCall(
+        service='CodeCommit',
+        action='updateApprovalRuleTemplateContent',
+        parameters={
+            'approvalRuleTemplateName': f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}',
+            'newRuleContent': json_string,
+        }),
+    on_delete=custom_resources.AwsSdkCall(
+        service='CodeCommit',
+        action='deleteApprovalRuleTemplate',
+        parameters={
+            'approvalRuleTemplateName': f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}'
+        }
+    ),
+    policy=custom_resources.AwsCustomResourcePolicy.from_sdk_calls(
+        resources=custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE
+    ),
+    vpc=vpc,
+    vpc_subnets=aws_ec2.SubnetSelection(
+        subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED
+    ),
+)
+```
+
+### Template association
+
+Now we have code for our template creation, we also need to associate the template with a repository:
+
+```python
+associate_approval_template = custom_resources.AwsCustomResource(
+    self,
+    f'AssociateApprovalTemplateFor{branch}On{repository_name}',
+    on_create=custom_resources.AwsSdkCall(
+        service='CodeCommit',
+        action='associateApprovalRuleTemplateWithRepository',
+        physical_resource_id=custom_resources.PhysicalResourceId.of(
+            f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}-association'
+        ),
+        parameters={
+            'approvalRuleTemplateName': f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}',
+            'repositoryName': self._repository.repository_name
+        }
+    ),
+    on_delete=custom_resources.AwsSdkCall(
+        service='CodeCommit',
+        action='disassociateApprovalRuleTemplateFromRepository',
+        parameters={
+            'approvalRuleTemplateName': f'{str(required_approvals)}-approval-for-{self._repository.repository_name}-{branch}',
+            'repositoryName': self._repository.repository_name
+        }
+    ),
+    policy=custom_resources.AwsCustomResourcePolicy.from_sdk_calls(
+        resources=custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE
+    ),
+    vpc=vpc,
+    vpc_subnets=aws_ec2.SubnetSelection(
+        subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED
+    ),
+)
+associate_approval_template.node.add_dependency(create_approval_template)
+```
+
+### CodeChecker CodeBuild project
+
+With the approval templates in place we also need the CodeChecker project itself:
+
+```python
+from aws_cdk import aws_codebuild
+
+pullrequest_project = aws_codebuild.Project(
+    self,
+    f"PullRequestCheckFor{branch}",
+    project_name=f"{repository_name.lower()}-codechecker-{branch}",
+    source=aws_codebuild.Source.code_commit(repository=self._repository),
+    role=self.codechecker_role,
+    environment=aws_codebuild.BuildEnvironment(
+        build_image=aws_codebuild.LinuxBuildImage.STANDARD_6_0
+    ),
+    build_spec=aws_codebuild.BuildSpec.from_object_to_yaml({
+        "version": "0.2",
+        "env": {"git-credential-helper": "yes"},
+        "phases": {
+            "install": {
+                "commands": [
+                    "npm install -g aws-cdk",
+                    "pip install -r requirements.txt",
+                ]
+            },
+            "build": {
+                "commands": ["cdk synth"]
+            },
+            "post_build": {
+                "commands": [
+                    "pytest --junitxml=reports/codechecker-pytest.xml > pytest-output.txt",
+                    'if grep -i "passed" pytest-output.txt; then PYTEST_RESULT="PASSED"; else PYTEST_RESULT="FAILED"; fi',
+                    'if [ $PYTEST_RESULT != "PASSED" ]; then PR_STATUS="REVOKE"; else PR_STATUS="APPROVE"; fi',
+                    "REVISION_ID=$(aws codecommit get-pull-request --pull-request-id $PULL_REQUEST_ID | jq -r '.pullRequest.revisionId')",
+                    "aws codecommit update-pull-request-approval-state --pull-request-id $PULL_REQUEST_ID --revision-id $REVISION_ID --approval-state $PR_STATUS"
+                ]
+            },
+        },
+    }),
+)
+```
+
+### Catching the event
+
+With the CodeChecker project created, we need something to trigger the project when a PR is created. We will use EventBridge:
+
+```python
+from aws_cdk import aws_events
+
+pull_request_rule = aws_events.Rule(
+    self,
+    f"OnPullRequest{branch}EventRule",
+    event_pattern=aws_events.EventPattern(
+        source=["aws.codecommit"],
+        resources=[self.repository.repository_arn],
+        detail={
+            "event": [
+                "pullRequestCreated",
+                "pullRequestSourceBranchUpdated",
+            ]
+        },
+    ),
+)
+
+pull_request_rule.add_target(
+    target=aws_events_targets.CodeBuildProject(
+        pullrequest_project,
+        event=aws_events.RuleTargetInput.from_object({
+            "sourceVersion": aws_events.EventField.from_path("$.detail.sourceCommit"),
+            "environmentVariablesOverride": [
+                {
+                    "name": "PULL_REQUEST_ID",
+                    "type": "PLAINTEXT",
+                    "value": aws_events.EventField.from_path("$.detail.pullRequestId"),
+                },
+            ]
+        }),
+    )
+)
+```
+
+## Summary
+
+By replacing the cloudcomponents constructs with AWS native resources, we make ourselves less dependent on third-party constructs. We only need four blocks of code plus the approval template definition to completely replace the outdated cloudcomponents constructs. The resources are maintained by the CDK project and can follow your normal update cycle of CDK.
+
+## Try yourself
+
+Ready to simplify your CodeChecker setup and reduce dependencies on third-party constructs? Check out the code on [GitHub](https://github.com/buildinginthecloud/codechecker_v2) to get started!
+
+---
+
+*Have questions about CDK or CodeChecker? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

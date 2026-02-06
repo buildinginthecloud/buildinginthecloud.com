@@ -1,0 +1,153 @@
+---
+title: "Upgrading CDK from CDKv1 to CDKv2 in existing project"
+description: "A practical guide to migrating your existing CDK project from version 1 to version 2, with real-world tips and troubleshooting."
+date: "2022-01-21"
+tags: ["AWS", "CDK", "Migration", "Security"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-upgrade-cover.jpeg"
+---
+
+## Background
+
+On December 2nd AWS [announced the general availability of CDK version 2](https://aws.amazon.com/blogs/aws/announcing-general-availability-of-construct-hub-and-aws-cloud-development-kit-version-2/). The main reason that the CDK team released version two was to deal with the so called dependency hell. CDK and all stable constructs are now combined in 1 package/module.
+
+As working as a cloud consultant for an enterprise in the financial sector, being secure and patching your software, yes CDK can be seen as software too, is a must. So patching CDK to version 2 is inevitable. Especially as CDK version 1 will be retired as of 1st of June 2023.
+
+## Prerequisites
+
+Knowledge of CDK is required. Luckily AWS created workshops:
+
+- [cdkworkshop.com](https://cdkworkshop.com)
+- [cdk-advanced.workshop.aws](https://cdk-advanced.workshop.aws)
+
+## Real World Scenario
+
+At the current assignment a data platform is created in AWS using services like DataSync, S3, Glue, EMR, Athena and MWAA.
+
+During the start of the project, CDK version 1 was the only major version available. When working with CDK version 1, every package/module which is needed for the CDK App, needs to be installed. The `requirements.txt` was extensive:
+
+```
+aws-cdk.aws-athena==1.136.0
+aws-cdk.aws-certificatemanager==1.136.0
+aws-cdk.aws-codecommit==1.136.0
+aws-cdk.aws-codebuild==1.136.0
+aws-cdk.aws-codepipeline==1.136.0
+aws-cdk.aws-codepipeline-actions==1.136.0
+# ... many more packages
+```
+
+With CDK version 2 the downloading of packages is limited to a single package, the `aws-cdk-lib` package. This makes the `requirements.txt` file and potential whitelisting much easier.
+
+## Go Build
+
+### Old CDK version 1
+
+The `cdk.json` file looked like this with many feature flags:
+
+```json
+{
+  "app": "python app.py",
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
+    "@aws-cdk/core:enableStackNameDuplicates": "true",
+    "@aws-cdk/aws-kms:defaultKeyPolicies": true,
+    "@aws-cdk/core:newStyleStackSynthesis": true
+    // ... many more
+  }
+}
+```
+
+### Move to CDK version 2
+
+First, create an extra virtual environment:
+
+```bash
+➜  python3 -m venv .cdkv2
+➜  source .cdkv2/bin/activate
+(.cdkv2) ➜  git checkout -b feature/cdk_version_2
+```
+
+The new `requirements.txt` file is much simpler:
+
+```
+boto3
+pytest
+-e .
+```
+
+In the `setup.py` file the `aws-cdk-lib` and `construct` packages are added:
+
+```python
+install_requires=[
+    "aws-cdk-lib==2.2.0",
+    "constructs>=10.0.0,<11.0.0",
+],
+```
+
+The `cdk.json` is also simplified as many options are now obsolete:
+
+```json
+{
+  "app": "python app.py",
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": false,
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": false,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": false,
+    "@aws-cdk/core:stackRelativeExports": false
+  }
+}
+```
+
+### Configuring code to use new CDK version 2 libraries
+
+The `app.py` file imports change from:
+
+```python
+from aws_cdk import core as cdk
+```
+
+To:
+
+```python
+from aws_cdk import (
+    App,
+    Aspects,
+    Aws,
+    Environment,
+)
+```
+
+For stack files, the imports change to:
+
+```python
+from aws_cdk import (
+    Aspects,
+    Stack,
+    aws_codecommit as codecommit,
+    aws_ec2 as ec2,
+    aws_iam as iam,
+    pipelines,
+)
+from constructs import (
+    Construct,
+)
+```
+
+### Testing the CDK version 2
+
+The first try synthesizing failed because `trust_account_identities` on KMS keys is not supported in CDKv2 anymore.
+
+Second try, another failure. This time on VPC selection: `SubnetType.ISOLATED` is renamed to `PRIVATE_ISOLATED` in CDK version 2.
+
+Finally third time is a charm! CDK synthesises correctly.
+
+Last thing to do was check in the code in the newly created branch. Create a proper commit message, following a pull request. This pull request was reviewed by a colleague (the 4-eye method), and merged with the `main` branch and let CDK pipelines work its magic.
+
+## Try Yourself
+
+If you want to try yourself, you can use my [cdkpipeline_with_cfn_nag repository in GitHub](https://github.com/yvthepief/cdkpipeline_with_cfn_nag). Clone or Fork it, and try to upgrade it to CDK version 2 following the steps in this blog.
+
+---
+
+*Have questions about CDK migration? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

@@ -1,0 +1,173 @@
+---
+title: "Check and secure CDK code with cdk-nag"
+description: "Learn how to use cdk-nag from the Construct Hub to check your CDK applications for AWS best practices during synthesize."
+date: "2022-03-14"
+tags: ["AWS", "CDK", "Security", "Developer"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-nag-cover.jpeg"
+---
+
+## Background
+
+In my previous blog, CDK Pipelines and CloudFormation linting, I wrote about how you can use cfn_nag in CDK pipelines to check your CloudFormation templates on security best practices. With an end goal to make your code more secure and enterprise ready. Since 2 December last year, AWS [announced](https://aws.amazon.com/blogs/aws/announcing-general-availability-of-construct-hub-and-aws-cloud-development-kit-version-2/) the general availability of the [Construct Hub](https://constructs.dev/).
+
+In the Construct Hub the [construct cdk-nag](https://constructs.dev/packages/cdk-nag) has been released. The cdk-nag construct allows you to check your CDK applications for best practices using a combination of available rule packs. Using this cdk-nag construct and use it inside your code to check upon security best practices, will eventually make your application more secure.
+
+## Prerequisites
+
+Knowledge of CDK is required. Luckily AWS created workshops on this topic:
+
+- [cdkworkshop.com](https://cdkworkshop.com)
+- [cdk-advanced.workshop.aws](https://cdk-advanced.workshop.aws)
+
+Furthermore access to an AWS Account with proper rights to deploy resources is needed.
+
+## Installation
+
+The idea here is to create a basic S3 bucket, and let cdk-nag check the code by using the Aspect function in CDK.
+
+```bash
+➜  mkdir s3bucket_with_cdk_nag_construct && cd s3bucket_with_cdk_nag_construct
+➜  cdk init app --language python
+```
+
+## Real World Scenario
+
+Within enterprises, security frameworks are often used to make sure that resources are securely deployed in the cloud. AWS has the service Security Hub which can deploy rulesets to support such security frameworks.
+
+When developing a CDK application, it is sometimes hard to track if your created code is compliant or not before actually deploying your CDK stacks.
+
+Using tools like cfn_nag will allow you to check your CloudFormation templates on security best practices. Now with the construct cdk_nag from the Construct Hub it is possible to implement cfn_nag rules and checks directly into your code set during synthesizing.
+
+## Go Build
+
+As we are using CDK version 2, we only need to add cdk-nag. In the CDK application edit the `requirements.txt` file:
+
+```bash
+aws-cdk-lib==2.16.0
+constructs>=10.0.0,<11.0.0
+cdk-nag>=2.10.0
+```
+
+Now install everything and activate the virtual environment:
+
+```bash
+➜  source .venv/bin/activate
+(.venv) ➜  pip install -r requirements.txt
+```
+
+### Create S3 bucket
+
+Open the file `s3bucket_with_cdk_nag_construct_stack.py` and add the S3 bucket:
+
+```python
+from aws_cdk import (
+    aws_s3 as s3,
+    Stack,
+)
+from constructs import Construct
+
+class S3BucketWithCfnNagConstructStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        s3.Bucket(self, 'S3Bucket')
+```
+
+Now synthesize the CDK project. If you want to run cfn_nag_scan locally:
+
+```bash
+(.venv) ➜  cfn_nag_scan -i cdk.out/S3BucketWithCfnNagConstructStack.template.json
+------------------------------------------------------------
+| WARN W51
+| Resource: ["S3Bucket07682993"]
+| S3 bucket should likely have a bucket policy
+------------------------------------------------------------
+| WARN W35
+| Resource: ["S3Bucket07682993"]
+| S3 Bucket should have access logging configured
+------------------------------------------------------------
+| WARN W41
+| Resource: ["S3Bucket07682993"]
+| S3 Bucket should have encryption option set
+
+Failures count: 0
+Warnings count: 3
+```
+
+What if we can use an Aspect for `cfn_nag_scan`. Let us configure `cdk_nag`:
+
+```python
+from aws_cdk import (
+    Aspects,
+    Stack,
+    aws_s3 as s3,
+)
+from constructs import Construct
+import cdk_nag
+
+class S3BucketWithCfnNagConstructStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        s3.Bucket(self, 'S3Bucket')
+        Aspects.of(self).add(cdk_nag.AwsSolutionsChecks())
+```
+
+So now synthesize the CDK app:
+
+```bash
+(.venv) ➜  cdk synth
+[Error at /S3BucketWithCfnNagConstructStack/S3Bucket/Resource] AwsSolutions-S1: The S3 Bucket has server access logs disabled.
+[Error at /S3BucketWithCfnNagConstructStack/S3Bucket/Resource] AwsSolutions-S2: The S3 Bucket does not have public access restricted.
+[Error at /S3BucketWithCfnNagConstructStack/S3Bucket/Resource] AwsSolutions-S3: The S3 Bucket does not default encryption enabled.
+[Error at /S3BucketWithCfnNagConstructStack/S3Bucket/Resource] AwsSolutions-S10: The S3 Bucket does not require requests to use SSL.
+
+Found errors
+```
+
+It does not synthesize due to errors raised by `cdk_nag`. If we compare the outcome with the normal `cfn_nag_scan` you can see that there is an extra error raised with the `cdk_nag` construct about SSL.
+
+### Make the bucket secure
+
+Let us try the secure bucket construct from my previous blog. Add the package `secure-bucket-construct==2.1.0` to the `requirements.txt` file and run `pip install -r requirements.txt` again.
+
+```python
+from aws_cdk import (
+    Aspects,
+    Stack,
+)
+from constructs import Construct
+from secure_bucket_construct import SecureBucket
+import cdk_nag
+
+class S3BucketWithCfnNagConstructStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        SecureBucket(self, 'SecureS3Bucket')
+        Aspects.of(self).add(cdk_nag.AwsSolutionsChecks())
+```
+
+When synthesizing the template you can now see that no errors are raised by the `cdk_nag` construct. We can double check with `cfn_nag_scan`:
+
+```bash
+(.venv) ➜  cfn_nag_scan -i cdk.out/S3BucketWithCfnNagConstructStack.template.json
+------------------------------------------------------------
+Failures count: 0
+Warnings count: 0
+```
+
+Happy days! With `cdk-nag` from the Construct Hub we are able to see if resources are being deployed according to best practices during synthesize.
+
+## Try Yourself
+
+The complete code can be found in my GitHub: [S3 Bucket checked with cdk-nag construct](https://github.com/buildinginthecloud/s3bucket_with_cdk_nag_construct)
+
+---
+
+*Have questions about cdk-nag or CDK security? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

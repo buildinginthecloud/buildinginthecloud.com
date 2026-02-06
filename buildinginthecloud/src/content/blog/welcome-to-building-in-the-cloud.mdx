@@ -1,0 +1,63 @@
+---
+title: "Welcome to Building in the Cloud"
+description: "An introduction to this blog about AWS, CDK, and cloud infrastructure best practices."
+date: "2024-01-15"
+tags: ["aws", "cdk", "introduction"]
+featured: true
+draft: false
+---
+
+Welcome to **Building in the Cloud**! I'm Yvo van Zee, a Cloud Consultant at Cloudar and AWS Community Builder. This blog is my space to share knowledge, insights, and best practices about building in the AWS cloud.
+
+## What You'll Find Here
+
+This blog focuses on several key areas of cloud development:
+
+### AWS CDK
+
+The AWS Cloud Development Kit (CDK) has transformed how we define cloud infrastructure. Instead of writing YAML or JSON templates, we can use familiar programming languages like Python, TypeScript, or Java.
+
+```python
+from aws_cdk import Stack
+from aws_cdk import aws_s3 as s3
+from constructs import Construct
+
+class MyStack(Stack):
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
+
+        # Create an S3 bucket with best practices
+        bucket = s3.Bucket(
+            self,
+            "MyBucket",
+            encryption=s3.BucketEncryption.S3_MANAGED,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            enforce_ssl=True,
+        )
+```
+
+### Infrastructure as Code
+
+IaC is more than just a tool - it's a mindset. We'll explore patterns, best practices, and common pitfalls to avoid.
+
+### Security
+
+Security is not an afterthought. I'll share how to build secure-by-default infrastructure and use tools like `cdk-nag` to enforce compliance.
+
+### AWS Best Practices
+
+From cost optimization to operational excellence, we'll cover the AWS Well-Architected Framework principles.
+
+## Why This Blog?
+
+As an AWS Community Builder, I believe in sharing knowledge with the community. The cloud ecosystem is constantly evolving, and by documenting my learnings, I hope to help others on their cloud journey.
+
+## Stay Connected
+
+Subscribe to the newsletter to get notified when new posts are published. You can also find me on:
+
+- [GitHub](https://github.com/yvthepief)
+- [Twitter/X](https://twitter.com/yvthepief)
+- [LinkedIn](https://linkedin.com/in/yvovanzee)
+
+Let's build something great in the cloud together!

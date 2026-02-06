@@ -1,6 +1,10 @@
 {
   "dependencies": [
     {
+      "name": "@aws-cdk/aws-amplify-alpha",
+      "type": "build"
+    },
+    {
       "name": "@types/jest",
       "type": "build"
     },
@@ -87,12 +91,16 @@
       "type": "build"
     },
     {
+      "name": "@aws-cdk/aws-amplify-alpha",
+      "type": "runtime"
+    },
+    {
       "name": "aws-cdk-github-oidc",
       "type": "runtime"
     },
     {
       "name": "aws-cdk-lib",
-      "version": "2.219.0",
+      "version": "2.237.1",
       "type": "runtime"
     },
     {

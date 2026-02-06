@@ -1,0 +1,213 @@
+---
+title: "CDK CodeChecker"
+description: "Implement automated pull request checks with CDK to enforce code reviews, testing, and approval workflows in your AWS CodeCommit repositories."
+date: "2023-12-05"
+tags: ["AWS", "CDK", "Code Review", "Automation"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-codechecker-cover.jpeg"
+---
+
+## Background
+
+When starting new projects with clients, the first thing I often do is to set a foundation, a so-called baseline. We discuss our team/DevOps agreements, some technical ones like; "Thou shalt not push to main" and others more on a process level, like we do scrum etc. When those agreements are signed in blood by everyone, the actual work starts. From a technical point of view, it starts with creating a repository.
+
+As I am an AWS fanboy, and helping clients with their Cloud journey, I try to stick to native AWS services as much as possible. This means for code storing I use AWS CodeCommit as a git repository, not always preferred, but in enterprises often mandatory. As I am also a CDK lover, I combine the AWS services with CDK pipelines.
+
+Back to the DevOps agreements, one of our rules is that you should not push to main and everything which needs to end up in main, needs to be peer reviewed by a colleague. So how can we tackle this via code?
+
+Well first of all, on the role used by developers, we set a refs condition with deny permissions, so users can not directly push to the main branch anymore:
+
+```yaml
+CodecommitPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Codecommit policy
+      ManagedPolicyName: landingzone-platform-operator-codecommit-policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ProtectMainBranch
+            Effect: Deny
+            Action:
+              - codecommit:GitPush
+              - codecommit:DeleteBranch
+              - codecommit:PutFile
+              - codecommit:MergeBranchesByFastForward
+              - codecommit:MergeBranchesBySquash
+              - codecommit:MergeBranchesByThreeWay
+              - codecommit:MergePullRequestByFastForward
+              - codecommit:MergePullRequestBySquash
+              - codecommit:MergePullRequestByThreeWay
+            Resource: <YOUR REPO ARN>
+            Condition:
+              StringEqualsIfExists:
+                codecommit:References:
+                  - refs/heads/main
+              'Null':
+                codecommit:References: 'false'
+```
+
+With this policy in place, users need to create Pull Requests (PRs). Because we also want to prohibit users from approving their PRs, some extra configuration is needed. CodeCommit can use [approval templates](https://docs.aws.amazon.com/codecommit/latest/userguide/approval-rule-templates.html) for that. What is even nicer is that you can also trigger a CodeBuild project to for example run tests or validations on your code.
+
+## Real World Scenario
+
+So within the DevOps Agreements, we have stated 3 important rules:
+
+1. You shall not push to the main branch directly, but create Pull Requests.
+2. Your Pull Request needs to be verified by a colleague, also called a peer review.
+3. Your code is tested
+
+What we want to achieve: A Developer pushes to a feature branch, and depending on which branch the pull request is created, develop or main branch, several approvals need to be given. The creation of a pull request triggers an event which kicks off a CodeBuild project which will run tests and linting. When everything passes, approval will be given by the CodeChecker and you only need one approval from your colleague to continue the merge to main.
+
+![CodeChecker Architecture](/images/blog/cdk-codechecker-architecture.png)
+
+## GO Build
+
+Start with creating a CDK app:
+
+```bash
+❯ cdk init app --language=python
+```
+
+On [constructs.dev](https://constructs.dev/packages/@cloudcomponents/cdk-pull-request-check) there is a cool construct available which takes away a lot of burden. Install and import it:
+
+```python
+❯ pip3 install cloudcomponents.cdk_pull_request_check
+❯ pip install cloudcomponents.cdk_pull_request_approval_rule
+```
+
+Here is the start of the `codechecker_stack.py` file with all the imports:
+
+```python
+from aws_cdk import (
+    Aspects,
+    Stack,
+    aws_iam as iam,
+    aws_codecommit as codecommit,
+    aws_codebuild as codebuild,
+    aws_kms,
+    aws_events_targets as event_target,
+    aws_sns as sns,
+    custom_resources as custom_resources,
+)
+from constructs import Construct
+
+from cloudcomponents.cdk_pull_request_check import PullRequestCheck
+
+from cloudcomponents.cdk_pull_request_approval_rule import (
+    Approvers,
+    ApprovalRuleTemplate,
+    ApprovalRuleTemplateRepositoryAssociation,
+    Template,
+)
+import cdk_nag
+
+# Constant variables
+REPOSITORY_NAME = "my_demo_repo"
+MY_ASSUME_ROLE = "MY_ASSUME_ROLE"
+APPROVALS_REQUIRED_MAIN = 1
+TEMPLATES_FOLDER = "cdk.out"
+TEMPLATES_FILE_SUFFIX = "*.template.json"
+```
+
+The main stack class creates the repository, pull request check, and loops over branches to create approval templates:
+
+```python
+class CodecheckerStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        # Import the CodeCommit repository
+        self.repository = codecommit.Repository.from_repository_name(
+            self, "Repository", repository_name=REPOSITORY_NAME
+        )
+
+        # Create the pull request check
+        pull_request_check = self.create_pull_request_check(self.repository)
+
+        # Dict for branches and amount of approvals needed
+        approvals_per_branch = {
+            "main": APPROVALS_REQUIRED_MAIN,
+        }
+
+        # Starting for loop over dict and create approval templates
+        for branch, required_approvals in approvals_per_branch.items():
+            create_approval_template = self.create_approval_template(
+                id=f"{branch}-{required_approvals}",
+                branch=branch,
+                required_approvals=required_approvals,
+                repository_name=self.repository.repository_name,
+                pr_check_approval_role=pull_request_check.code_build_result_function.role.role_name,
+            )
+            # Associate approval rule template with repositories
+            approval_template_association = (
+                self.associate_approval_rule_template_with_repositories(
+                    id=f"associate-existing-repositories-{branch}-{required_approvals}",
+                    branch=branch,
+                    required_approvals=required_approvals,
+                )
+            )
+            approval_template_association.node.add_dependency(create_approval_template)
+
+        # Adding CDK Nag aspects
+        Aspects.of(self).add(cdk_nag.AwsSolutionsChecks())
+```
+
+The `create_pull_request_check` function creates the actual CodeBuild project:
+
+```python
+def create_pull_request_check(
+    self, repository: codecommit.Repository
+) -> PullRequestCheck:
+    pullrequest = PullRequestCheck(
+        self,
+        "PullRequestCheck",
+        repository=repository,
+        role=self.create_pull_request_role(
+            repository_name=repository.repository_name
+        ),
+        build_image=codebuild.LinuxBuildImage.STANDARD_6_0,
+        environment_variables={
+            "TEMPLATES_FOLDER": codebuild.BuildEnvironmentVariable(
+                type=codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+                value=TEMPLATES_FOLDER,
+            ),
+        },
+        build_spec=codebuild.BuildSpec.from_object({
+            "version": "0.2",
+            "env": {"git-credential-helper": "yes"},
+            "phases": {
+                "install": {
+                    "commands": [
+                        "npm install -g aws-cdk",
+                        "pip install -r requirements.txt",
+                        "pip3 install cfn-lint",
+                        "gem install cfn-nag",
+                    ]
+                },
+                "build": {
+                    "commands": [
+                        "cdk synth",
+                        "for template in $(find ./$TEMPLATES_FOLDER -type f -maxdepth 3 -name $TEMPLATES_FILE_SUFFIX); do cfn-lint $template; done",
+                        "for template in $(find ./$TEMPLATES_FOLDER -type f -maxdepth 3 -name $TEMPLATES_FILE_SUFFIX); do cfn_nag_scan -i $template; done",
+                    ]
+                },
+                "post_build": {"commands": ["pytest -v"]},
+            },
+        }),
+    )
+    return pullrequest
+```
+
+## Summary
+
+With this, we have created a pull request mechanism which is automatically started when someone creates a pull request. The pull request fires off a CodeBuild project where tests and security checks are executed. When everything is successful, the pull request will receive approval automatically. Depending on the amount of approvals that need to be given, the pull request can be merged.
+
+## Try yourself
+
+[Code can be found in my GitHub](https://github.com/buildinginthecloud/codechecker)
+
+---
+
+*Have questions about CodeChecker or CDK? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

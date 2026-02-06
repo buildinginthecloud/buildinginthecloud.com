@@ -1,0 +1,126 @@
+---
+title: "Testing AWS Lambda function locally"
+description: "Learn how to test your AWS Lambda Python functions locally using python-lambda-local, avoiding the deploy-test-debug cycle."
+date: "2021-08-19"
+tags: ["AWS", "Lambda", "Python", "Testing"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/lambda-local-cover.jpeg"
+---
+
+## Background
+
+When working with Infrastructure as Code, for example Cloud Development Kit (CDK), it is possible to create AWS Lambda functions inside your CDK application. With CDK it is simple to package this Lambda and let CDK deploy it within your AWS environment. But often I find myself writing AWS Lambda code in my code editor and having trouble to test if the function does what it needs to do.
+
+We all have been there and said, "it works on my machine". But my machine is not the AWS landscape. So normally you would create the lambda function, deploy it via CDK, invoke the Lambda function with a test, to see the results and find out that the function is not working as expected.
+
+## Package python-lambda-local
+
+As a solution I use the pip package: python-lambda-local. This package lets you test your lambda Python function locally as it would be running inside AWS. So you can create a function called lambda_handler with event and context as input.
+
+## Prerequisite
+
+- AWS access via access key and secret key as this example uses boto3 call to AWS.
+
+## Installation
+
+First we need to install the package via pip:
+
+```bash
+pip install python-lambda-local
+```
+
+Running the package:
+
+```bash
+python-lambda-local -f lambda_handler lambda_function.py event.json
+
+# where:
+# lambda_handler is the name of your handler function
+# lambda_function.py is the name of your file with Python code
+# event.json is the test event data
+```
+
+Basically it is just via the command line on your machine invoke the function with for example a test event.
+
+## Real world scenario
+
+So I was exploring the service called Managed Workflow Apache Airflow (MWAA). Which is a managed orchestration service for Apache Airflow that makes it easier to set up and operate end-to-end data pipelines.
+
+One of the best practises is to run MWAA in a private network mode, so in a private subnet within your VPC. The problem with running MWAA in private mode is that when MWAA is deployed, you can not connect to the Apache Airflow UI.
+
+As a solution AWS describes the usage of a loadbalancer in front of your MWAA, see the [AWS documentation](https://docs.aws.amazon.com/mwaa/latest/userguide/vpc-vpe-access.html#vpc-vpe-access-endpoints). To make use of this loadbalancer we need to have the ip addresses of the VPC Endpoints created by MWAA inside your VPC. This is perfect food for a lambda which can in a later stage be used as Custom Resource within your CDK application. For now lets focus on the lambda function which retrieves the private IP addresses of my VPC endpoint for MWAA.
+
+## Go Build
+
+Lets start with a file called `get_mwaa_ips.py`. The end goal is to retrieve the MWAA VPC endpoint IP addresses so we can use them as targets with our load balancer. For this demo we first retrieve the MWAA environment name, as described in the first step in the AWS documentation.
+
+The Python file will use boto3 to use the MWAA list_environments API call. Furthermore I have added standard logging to the Python file.
+
+```python
+import boto3
+import os
+import logging
+
+logger = logging.getLogger("__name__")
+logger.setLevel(os.environ.get("LOG_LEVEL", logging.INFO))
+from botocore.exceptions import ClientError
+
+mwaa = boto3.client('mwaa')
+```
+
+Second part is to actually create the function which lists the MWAA environment. The function `def list_mwaa_environments` returns a list of environments. See also the [boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/mwaa.html#MWAA.Client.list_environments).
+
+```python
+# list mwaa environments via boto3
+def list_mwaa_environments():
+    name = mwaa.list_environments()
+    return name
+```
+
+Last is the actual lambda handler, which uses event and context as input. As we retrieve from the function `list_mwaa_environments()` a list, because you could potentially have multiple MWAA environments, we need to loop over it to retrieve the MWAA environment name.
+
+```python
+def lambda_handler(event, context):
+    logger.info(event)
+
+    try:
+        for mwaa_environment in list_mwaa_environments().get('Environments'):
+            return mwaa_environment
+    except ClientError as e:
+        logger.error(e.response['Error']['Message'])
+```
+
+Now we need a test event as we would have inside the AWS Lambda service. So create a file called `event.json` in the same directory and add the following content:
+
+```json
+{}
+```
+
+Now it is actual time to test the lambda function as it would run in AWS Lambda. On your terminal run the command to test your lambda_handler within the get_mwaa_ips.py file with the event.json.
+
+**Because I am using a boto3 call here which actually checks against the api of MWAA, I do need to have access to AWS (`aws_access_key_id` and `aws_secret_access_key`) and my role which is attached to my user to have permissions to list Airflow environments: `airflow:ListEnvironments`**
+
+This will result in the following:
+
+```bash
+➜  testing_lambda_locally python-lambda-local -f lambda_handler get_mwaa_ips.py event.json
+[root - INFO - 2021-08-19 21:09:08,704] Event: {}
+[root - INFO - 2021-08-19 21:09:08,704] START RequestId: 20581f30-12de-4a8f-94b1-79b089eeefc8 Version:
+[botocore.credentials - INFO - 2021-08-19 21:09:09,207] Found credentials in shared credentials file: ~/.aws/credentials
+[__name__ - INFO - 2021-08-19 21:09:09,235] {}
+[root - INFO - 2021-08-19 21:09:09,451] END RequestId: 20581f30-12de-4a8f-94b1-79b089eeefc8
+[root - INFO - 2021-08-19 21:09:09,452] REPORT RequestId: 20581f30-12de-4a8f-94b1-79b089eeefc8	Duration: 162.46 ms
+[root - INFO - 2021-08-19 21:09:09,452] RESULT:
+Orchestration
+```
+
+In my AWS Account there is a MWAA environment created called `Orchestration`. This concludes this demo for now. Next thing is to expand the function with getting the actual IP addresses of the VPC endpoint and add it to a load balancer to MWAA with the IP addresses as targets.
+
+## Try yourself
+
+The code can be found in my [GitHub repository](https://github.com/buildinginthecloud/test_lambda_locally).
+
+---
+
+*Have questions about testing Lambda functions locally or working with MWAA? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*

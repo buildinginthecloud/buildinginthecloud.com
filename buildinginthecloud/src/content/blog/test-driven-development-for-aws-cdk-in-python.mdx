@@ -1,0 +1,184 @@
+---
+title: "Test Driven Development for AWS CDK in Python"
+description: "Learn how to apply Test Driven Development (TDD) principles to AWS CDK projects in Python, using the Red-Green-Refactor approach."
+date: "2023-05-09"
+tags: ["AWS", "CDK", "TDD", "Python"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/tdd-cdk-python-cover.jpeg"
+---
+
+## Background
+
+Often I hear people say, we should do TDD with our code. TDD is so much better. But what is TDD? And why is it better? And how can it be added to for example CDK?
+
+Basic knowledge of CDK is required though, as I will not explain what CDK is. If you want that, go follow the workshops provided by AWS:
+
+- [cdkworkshop.com](https://cdkworkshop.com)
+- [cdk-advanced.workshop.aws](https://cdk-advanced.workshop.aws)
+
+## TDD
+
+So TDD stands for Test Driven Development. Test Driven Development (TDD) is a software development methodology that emphasizes writing tests before writing the actual code.
+
+The main goal of TDD is to create a clear, reliable, and maintainable codebase. This is achieved by writing tests first so that developers can ensure that their code meets the required specifications and behaves as expected.
+
+The TDD process consists of three main steps, often referred to as "Red, Green and Refactor":
+
+1. **Red** (Write a failing test): In this step, developers should write a test for a specific functionality or feature before implementing the code. The test should initially fail, as the corresponding code has not yet been written.
+2. **Green** (Write the code to pass the test): Developers then write the minimal code necessary to pass the test. The focus is on making the test pass, not on creating an optimized or complete solution.
+3. **Refactor** (Improve the code): Once the test passes, developers can refactor the code to improve its design, readability, and efficiency, while ensuring that the test still passes.
+
+Benefits of TDD:
+
+- *Improved code quality*: Writing tests before the actual code encourages you to think critically about the desired behaviour and design.
+- *Easier debugging*: When a test fails, it is much easier to identify and fix the issue.
+- *Faster development*: By catching errors early in the development process, TDD helps prevent costly debugging sessions later on.
+- *Better collaboration*: A well-tested codebase is easier for other team members to understand and modify.
+- *Enhanced maintainability*: A comprehensive test suite serves as a safety net.
+
+## Real-world scenario
+
+So as a real-world scenario, I want to create a simple secure Simple Queue Service (SQS) queue. Following the [best practices of AWS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-best-practices.html). So the guidelines we want to create for the SQS queue are:
+
+1. The Queue must use KMS encryption
+2. The Queue must have a dead letter queue to act as an overflow of messages which can not be processed.
+
+## Go Build
+
+Now the fun stuff begins. Let us start with initializing a new CDK project.
+
+```bash
+➜  mkdir secure_sqs && cd secure_sqs
+➜  cdk init app --language=python
+➜  source .venv/bin/activate
+```
+
+## Write a failed test (RED)
+
+We will use the `assertions` library which comes with CDK. Open the file `tests/unit/test_secure_sqs_stack.py`:
+
+```python
+import aws_cdk as core
+import aws_cdk.assertions as assertions
+
+from secure_sqs.secure_sqs_stack import SecureSqsStack
+
+def test_sqs_queue_created():
+    app = core.App()
+    stack = SecureSqsStack(app, "secure-sqs")
+    template = assertions.Template.from_stack(stack)
+
+    template.has_resource_properties("AWS::SQS::Queue", {
+        "VisibilityTimeout": 300
+    })
+```
+
+Running pytest should fail:
+
+```bash
+FAILED tests/unit/test_secure_sqs_stack.py::test_sqs_queue_created - RuntimeError:
+Error: Template has 0 resources with type AWS::SQS::Queue.
+```
+
+### KMS Encrypted Queue
+
+Create a test that checks if the Queue contains a `KmsMasterKeyId`:
+
+```python
+from aws_cdk.assertions import Match
+
+def test_sqs_queue_is_encrypted():
+    app = core.App()
+    stack = SecureSqsStack(app, "secure-sqs")
+    template = assertions.Template.from_stack(stack)
+    template.has_resource_properties(
+        "AWS::SQS::Queue", {"KmsMasterKeyId": Match.any_value()}
+    )
+```
+
+### Dead letter queue attached to Queue
+
+```python
+def test_sqs_queue_has_dead_letter_queue():
+    app = core.App()
+    stack = SecureSqsStack(app, "secure-sqs")
+    template = assertions.Template.from_stack(stack)
+    template.has_resource_properties(
+        "AWS::SQS::Queue", {"RedrivePolicy": {"deadLetterTargetArn": Match.any_value()}}
+    )
+```
+
+## Write the code to pass the test (GREEN)
+
+Open the file `secure_sqs/secure_sqs_stack.py`:
+
+```python
+from aws_cdk import (
+    Duration,
+    Stack,
+    aws_kms,
+    aws_sqs,
+)
+from constructs import Construct
+
+
+class SecureSqsStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        # Create key with rotation and alias
+        key = aws_kms.Key(
+            self,
+            "SecureQueueKmsKey",
+            alias="/kms/secure_queue_key",
+            enable_key_rotation=True,
+            description="Key for encrypting SQS queue",
+        )
+
+        # Create secure encrypted dead letter queue
+        dead_letter_queue = aws_sqs.Queue(
+            self,
+            "SecureDeadLetterQueue",
+            queue_name="secure_dead_letter_queue",
+            encryption=aws_sqs.QueueEncryption.KMS,
+            encryption_master_key=key,
+            enforce_ssl=True,
+            visibility_timeout=Duration.seconds(300),
+        )
+
+        # Create secure encrypted queue with dead letter queue
+        queue = aws_sqs.Queue(
+            self,
+            "SecureQueue",
+            queue_name="secure_queue",
+            encryption=aws_sqs.QueueEncryption.KMS,
+            encryption_master_key=key,
+            enforce_ssl=True,
+            visibility_timeout=Duration.seconds(300),
+            dead_letter_queue=aws_sqs.DeadLetterQueue(
+                max_receive_count=5, queue=dead_letter_queue
+            ),
+        )
+```
+
+Running the tests now:
+
+```bash
+➜  pytest -v --tb=no
+tests/unit/test_secure_sqs_stack.py::test_sqs_queue_created PASSED        [ 33%]
+tests/unit/test_secure_sqs_stack.py::test_sqs_queue_is_encrypted PASSED   [ 66%]
+tests/unit/test_secure_sqs_stack.py::test_sqs_queue_has_dead_letter_queue PASSED [100%]
+
+3 passed in 4.98s
+```
+
+**AWS**ome, it passes! Now we can build further.
+
+## Summary
+
+In this post, I showed how the process should work using Test Driven Development with CDK. Start small and step for step. It is not wise to create tests for all the resources you will create in your end goal application. This will only clutter your tests. So the most important is that you start with tests, and once more keep these tests small. Iteration is the most important factor here!
+
+---
+
+*Have questions about TDD with CDK? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*
