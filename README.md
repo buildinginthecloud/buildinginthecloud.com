@@ -28,7 +28,7 @@ The infrastructure consists of three CDK stacks:
 
 | Stack | Description |
 |-------|-------------|
-| `buildinginthecloud-dev` | Mail relay configuration (iCloud mail) using existing Route53 hosted zone |
+| `mail-relay` | iCloud mail configuration (MX, SPF, DKIM records) |
 | `github-oidc` | GitHub OIDC IAM role for secure CI/CD deployments |
 | `amplify-hosting-dev` | AWS Amplify Hosting for the Next.js static website |
 

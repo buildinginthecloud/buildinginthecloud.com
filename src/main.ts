@@ -90,7 +90,7 @@ const DOMAIN_NAME = 'buildinginthecloud.com';
 const app = new App();
 
 // Mail relay stack for email configuration (uses existing hosted zone)
-const mailRelayStack = new MailRelay(app, 'buildinginthecloud-dev', {
+new MailRelay(app, 'mail-relay', {
   env: devEnv,
   domainName: DOMAIN_NAME,
   hostedZoneId: HOSTED_ZONE_ID, // Use existing hosted zone
