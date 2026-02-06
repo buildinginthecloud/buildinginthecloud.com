@@ -39,7 +39,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::517095477860:role/buildinginthecloud-com-github-actions-role
+          role-to-assume: arn:aws:iam::517095477860:role/GitHubActionsRole-LandingZone
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Bootstrap us-east-1 (for CloudFront certificate)
@@ -86,7 +86,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::517095477860:role/buildinginthecloud-com-github-actions-role
+          role-to-assume: arn:aws:iam::517095477860:role/GitHubActionsRole-LandingZone
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to S3
