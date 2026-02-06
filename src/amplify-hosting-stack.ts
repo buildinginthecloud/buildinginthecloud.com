@@ -67,7 +67,11 @@ export class AmplifyHostingStack extends Stack {
                   commands: ['npm ci'],
                 },
                 build: {
-                  commands: ['npm run build'],
+                  commands: [
+                    'npm run build',
+                    // Clean up duplicate node_modules in .next to prevent bundling errors
+                    'rm -rf .next/standalone/node_modules/.pnpm || true',
+                  ],
                 },
               },
               artifacts: {
