@@ -36,17 +36,23 @@ export class GitHubOidcStack extends Stack {
 
     const { githubOwner = 'buildinginthecloud', githubRepo = 'buildinginthecloud.com' } = props;
 
-    // Import the existing GitHub OIDC Identity Provider from the account
-    // (only one provider per account is allowed)
-    this.provider = GithubActionsIdentityProvider.fromAccount(this, 'GithubProvider');
+    // Create or import the GitHub OIDC Identity Provider
+    // Only one provider per account is allowed, so we check if it exists first
+    try {
+      this.provider = GithubActionsIdentityProvider.fromAccount(this, 'GithubProvider');
+    } catch {
+      // Provider doesn't exist, create it
+      this.provider = new GithubActionsIdentityProvider(this, 'GithubProvider');
+    }
     const provider = this.provider;
 
     // Create the IAM role that GitHub Actions will assume
+    // Using wildcard filter to allow both push and workflow_dispatch events
     const deployRole = new GithubActionsRole(this, 'GitHubActionsDeployRole', {
       provider: provider,
       owner: githubOwner,
       repo: githubRepo,
-      filter: 'ref:refs/heads/main', // Only allow deployments from main branch
+      filter: '*', // Allow all events from this repo (push, workflow_dispatch, etc.)
       roleName: `${githubRepo.replace(/\./g, '-')}-github-actions-role`,
       description: `GitHub Actions deployment role for ${githubOwner}/${githubRepo}`,
       maxSessionDuration: Duration.hours(1),
