@@ -7,8 +7,8 @@ This monorepo contains the infrastructure and website code for [buildingintheclo
 ```
 ├── src/                    # CDK infrastructure code
 │   ├── main.ts             # Main entry point + MailRelay stack
-│   ├── amplify-hosting-stack.ts  # Amplify Hosting configuration
-│   ├── github-oidc-stack.ts      # GitHub OIDC IAM role
+│   ├── static-hosting-stack.ts  # S3 + CloudFront hosting
+│   ├── github-oidc-stack.ts     # GitHub OIDC IAM role
 │   └── types.ts            # TypeScript interfaces
 ├── test/                   # CDK tests
 ├── website/                # Next.js website
@@ -30,7 +30,21 @@ The infrastructure consists of three CDK stacks:
 |-------|-------------|
 | `mail-relay` | iCloud mail configuration (MX, SPF, DKIM records) |
 | `github-oidc` | GitHub OIDC IAM role for secure CI/CD deployments |
-| `amplify-hosting-dev` | AWS Amplify Hosting for the Next.js static website |
+| `static-hosting` | S3 + CloudFront for static website hosting |
+
+### Static Hosting Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Route53   │────▶│  CloudFront │────▶│     S3      │
+│  DNS + SSL  │     │     CDN     │     │   Bucket    │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+- **S3**: Stores the static website files (HTML, CSS, JS, images)
+- **CloudFront**: Global CDN with HTTPS, caching, and compression
+- **Route53**: DNS records pointing to CloudFront
+- **ACM**: SSL certificate for HTTPS
 
 ## Prerequisites
 
@@ -72,23 +86,32 @@ npm run build
 
 ### First-time Setup
 
-1. **Deploy the GitHub OIDC stack**:
+1. **Deploy the GitHub OIDC stack** (enables secure deployments from GitHub Actions):
 
 ```bash
 npx cdk deploy github-oidc --profile mgmt
 ```
 
-2. **Deploy all stacks**:
+2. **Deploy the static hosting stack**:
 
 ```bash
-npx cdk deploy --all --profile mgmt
+npx cdk deploy static-hosting --profile mgmt
+```
+
+3. **Deploy the website** (manual first time, then automatic):
+
+```bash
+cd website
+npm run build
+aws s3 sync out/ s3://buildinginthecloud-com-website --delete --profile mgmt
 ```
 
 ### Automatic Deployments
 
 After initial setup, deployments happen automatically via GitHub Actions when you push to `main`:
-- CDK infrastructure changes trigger CDK deployment
-- Website changes trigger Amplify auto-build
+
+1. **Infrastructure job**: Deploys CDK changes
+2. **Website job**: Builds Next.js and syncs to S3, then invalidates CloudFront cache
 
 ## Website Features
 

@@ -1,8 +1,9 @@
 import { Stack, App, Duration } from 'aws-cdk-lib';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import { type Construct } from 'constructs';
-import { AmplifyHostingStack } from './amplify-hosting-stack';
+import { CertificateStack } from './certificate-stack';
 import { GitHubOidcStack } from './github-oidc-stack';
+import { StaticHostingStack } from './static-hosting-stack';
 import type { MailRelayProps } from './types';
 import { MAIL_CONFIG } from './types';
 
@@ -13,13 +14,11 @@ import { MAIL_CONFIG } from './types';
  * - SPF record for mail verification
  * - DKIM record for domain key validation
  * - MX records for mail routing
- * - HTTPS redirect for web traffic
  *
  * @example
  * ```typescript
  * new MailRelay(app, 'MailRelayStack', {
  *   domainName: 'example.com',
- *   targetDomainName: 'target.com'
  * });
  * ```
  */
@@ -82,6 +81,12 @@ const devEnv = {
   region: 'eu-central-1',
 } as const;
 
+// US East 1 environment for CloudFront certificates (required by CloudFront)
+const usEast1Env = {
+  account: '517095477860',
+  region: 'us-east-1',
+} as const;
+
 // Existing Route53 hosted zone configuration
 const HOSTED_ZONE_ID = 'Z005047721YOSJOMI0XAF';
 const DOMAIN_NAME = 'buildinginthecloud.com';
@@ -97,25 +102,28 @@ new MailRelay(app, 'mail-relay', {
 });
 
 // GitHub OIDC stack for secure deployments from GitHub Actions
-new GitHubOidcStack(app, 'github-oidc', {
+const oidcStack = new GitHubOidcStack(app, 'github-oidc', {
   env: devEnv,
   githubOwner: 'buildinginthecloud',
   githubRepo: 'buildinginthecloud.com',
 });
 
-// CodeStar Connection ARN for GitHub (OIDC-based authentication)
-const CODESTAR_CONNECTION_ARN =
-  'arn:aws:codeconnections:eu-central-1:517095477860:connection/429386d6-7e5e-40e2-8997-59d4479b9fc1';
+// Certificate stack in us-east-1 (required for CloudFront)
+const certificateStack = new CertificateStack(app, 'certificate', {
+  env: usEast1Env,
+  domainName: DOMAIN_NAME,
+  hostedZoneId: HOSTED_ZONE_ID,
+  crossRegionReferences: true,
+});
 
-// Amplify hosting stack for the Next.js website
-new AmplifyHostingStack(app, 'amplify-hosting-dev', {
+// Static hosting stack for the Next.js website (S3 + CloudFront)
+new StaticHostingStack(app, 'static-hosting', {
   env: devEnv,
   domainName: DOMAIN_NAME,
-  githubOwner: 'buildinginthecloud',
-  githubRepo: 'buildinginthecloud.com',
-  codestarConnectionArn: CODESTAR_CONNECTION_ARN,
-  branchName: 'main',
-  appRoot: 'website', // The subfolder containing the Next.js app
+  hostedZoneId: HOSTED_ZONE_ID,
+  certificateArn: certificateStack.certificateArn,
+  githubActionsRoleArn: oidcStack.roleArn,
+  crossRegionReferences: true,
 });
 
 app.synth();

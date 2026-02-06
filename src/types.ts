@@ -37,9 +37,25 @@ export interface GitHubOidcProps extends StackProps {
 }
 
 /**
- * Configuration properties for the AmplifyHosting stack
+ * Configuration properties for the Certificate stack
  */
-export interface AmplifyHostingProps extends StackProps {
+export interface CertificateStackProps extends StackProps {
+  /**
+   * The domain name for the certificate.
+   * @default 'buildinginthecloud.com'
+   */
+  readonly domainName?: string;
+
+  /**
+   * The ID of the Route53 hosted zone for DNS validation.
+   */
+  readonly hostedZoneId: string;
+}
+
+/**
+ * Configuration properties for the StaticHosting stack
+ */
+export interface StaticHostingProps extends StackProps {
   /**
    * The domain name for the website.
    * @default 'buildinginthecloud.com'
@@ -47,35 +63,20 @@ export interface AmplifyHostingProps extends StackProps {
   readonly domainName?: string;
 
   /**
-   * The GitHub repository owner/organization.
-   * @default 'website'
+   * The ID of the Route53 hosted zone.
    */
-  readonly githubOwner?: string;
+  readonly hostedZoneId: string;
 
   /**
-   * The GitHub repository name.
-   * @default 'buildinginthecloud.com'
+   * The ARN of the ACM certificate (must be in us-east-1).
    */
-  readonly githubRepo?: string;
+  readonly certificateArn: string;
 
   /**
-   * The ARN of the CodeStar Connection to GitHub.
-   * This enables OIDC-based authentication without tokens.
-   * @example 'arn:aws:codeconnections:eu-central-1:123456789:connection/abc-123'
+   * The ARN of the GitHub Actions IAM role.
+   * If provided, the role will be granted permissions to deploy to S3 and invalidate CloudFront.
    */
-  readonly codestarConnectionArn?: string;
-
-  /**
-   * The branch name to deploy.
-   * @default 'main'
-   */
-  readonly branchName?: string;
-
-  /**
-   * The root directory of the app in the monorepo.
-   * @default 'website'
-   */
-  readonly appRoot?: string;
+  readonly githubActionsRoleArn?: string;
 }
 
 /**
