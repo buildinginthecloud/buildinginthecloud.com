@@ -1,10 +1,6 @@
 {
   "dependencies": [
     {
-      "name": "@aws-cdk/aws-amplify-alpha",
-      "type": "build"
-    },
-    {
       "name": "@types/jest",
       "type": "build"
     },
@@ -89,10 +85,6 @@
     {
       "name": "typescript",
       "type": "build"
-    },
-    {
-      "name": "@aws-cdk/aws-amplify-alpha",
-      "type": "runtime"
     },
     {
       "name": "aws-cdk-github-oidc",

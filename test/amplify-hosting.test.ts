@@ -1,7 +1,6 @@
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyHostingStack } from '../src/amplify-hosting-stack';
-import { MailRelay } from '../src/main';
 
 describe('AmplifyHostingStack', () => {
   let app: App;
@@ -14,7 +13,6 @@ describe('AmplifyHostingStack', () => {
       domainName: 'test-domain.com',
       githubOwner: 'test-owner',
       githubRepo: 'test-repo',
-      githubTokenSecretName: 'test-github-token',
       branchName: 'main',
       appRoot: 'app',
     });
@@ -23,8 +21,8 @@ describe('AmplifyHostingStack', () => {
 
   test('creates an Amplify App', () => {
     template.hasResourceProperties('AWS::Amplify::App', {
-      Name: 'test-domain-com', // Domain name with dots replaced by dashes
-      Platform: 'WEB_COMPUTE',
+      Name: 'test-domain-com',
+      Platform: 'WEB',
     });
   });
 
@@ -36,14 +34,13 @@ describe('AmplifyHostingStack', () => {
     });
   });
 
-  test('configures GitHub source code provider', () => {
+  test('configures GitHub repository', () => {
     template.hasResourceProperties('AWS::Amplify::App', {
       Repository: 'https://github.com/test-owner/test-repo',
     });
   });
 
   test('sets correct environment variables', () => {
-    // Check that key environment variables are set (order may vary)
     template.hasResourceProperties('AWS::Amplify::App', {
       EnvironmentVariables: [
         { Name: 'AMPLIFY_MONOREPO_APP_ROOT', Value: 'app' },
@@ -54,47 +51,37 @@ describe('AmplifyHostingStack', () => {
     });
   });
 
-  test('creates outputs for app id and default domain', () => {
-    template.hasOutput('AmplifyAppId', {});
-    template.hasOutput('AmplifyDefaultDomain', {});
-    template.hasOutput('AmplifyBranchUrl', {});
-  });
-});
-
-describe('AmplifyHostingStack with custom domain', () => {
-  let app: App;
-  let stack: AmplifyHostingStack;
-  let template: Template;
-
-  beforeEach(() => {
-    // Create a mock hosted zone by creating a MailRelay stack first
-    app = new App();
-    const mailRelayStack = new MailRelay(app, 'TestMailRelay', {
-      domainName: 'test-domain.com',
+  test('creates IAM role for Amplify', () => {
+    template.hasResourceProperties('AWS::IAM::Role', {
+      AssumeRolePolicyDocument: {
+        Statement: [
+          {
+            Action: 'sts:AssumeRole',
+            Effect: 'Allow',
+            Principal: {
+              Service: 'amplify.amazonaws.com',
+            },
+          },
+        ],
+      },
     });
-
-    stack = new AmplifyHostingStack(app, 'TestAmplifyStackWithDomain', {
-      domainName: 'test-domain.com',
-      githubOwner: 'test-owner',
-      githubRepo: 'test-repo',
-      githubTokenSecretName: 'test-github-token',
-      hostedZone: mailRelayStack.hostedZone,
-    });
-    template = Template.fromStack(stack);
   });
 
-  test('creates domain association when hosted zone is provided', () => {
+  test('creates custom domain', () => {
     template.hasResourceProperties('AWS::Amplify::Domain', {
       DomainName: 'test-domain.com',
       EnableAutoSubDomain: false,
+      SubDomainSettings: [
+        { BranchName: 'main', Prefix: '' },
+        { BranchName: 'main', Prefix: 'www' },
+      ],
     });
   });
 
-  test('maps root domain and www subdomain', () => {
-    // Just verify the domain resource exists with the correct domain name
-    // The exact subdomain settings structure may vary based on CDK version
-    template.hasResourceProperties('AWS::Amplify::Domain', {
-      DomainName: 'test-domain.com',
-    });
+  test('creates outputs', () => {
+    template.hasOutput('AmplifyAppId', {});
+    template.hasOutput('AmplifyDefaultDomain', {});
+    template.hasOutput('AmplifyAppArn', {});
+    template.hasOutput('AmplifyDomainStatus', {});
   });
 });

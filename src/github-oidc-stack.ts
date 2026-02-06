@@ -1,4 +1,8 @@
-import { GithubActionsIdentityProvider, GithubActionsRole, type IGithubActionsIdentityProvider } from 'aws-cdk-github-oidc';
+import {
+  GithubActionsIdentityProvider,
+  GithubActionsRole,
+  type IGithubActionsIdentityProvider,
+} from 'aws-cdk-github-oidc';
 import { Stack, CfnOutput, Duration } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import type { Construct } from 'constructs';

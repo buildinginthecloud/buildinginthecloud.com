@@ -1,5 +1,4 @@
 import type { StackProps } from 'aws-cdk-lib';
-import type * as route53 from 'aws-cdk-lib/aws-route53';
 
 /**
  * Configuration properties for the MailRelay stack
@@ -26,7 +25,7 @@ export interface MailRelayProps extends StackProps {
 export interface GitHubOidcProps extends StackProps {
   /**
    * The GitHub repository owner/organization.
-   * @default 'buildinginthecloud'
+   * @default 'website'
    */
   readonly githubOwner?: string;
 
@@ -49,7 +48,7 @@ export interface AmplifyHostingProps extends StackProps {
 
   /**
    * The GitHub repository owner/organization.
-   * @default 'buildinginthecloud'
+   * @default 'website'
    */
   readonly githubOwner?: string;
 
@@ -60,10 +59,11 @@ export interface AmplifyHostingProps extends StackProps {
   readonly githubRepo?: string;
 
   /**
-   * The name of the AWS Secrets Manager secret containing the GitHub OAuth token.
-   * @default 'github-token'
+   * The ARN of the CodeStar Connection to GitHub.
+   * This enables OIDC-based authentication without tokens.
+   * @example 'arn:aws:codeconnections:eu-central-1:123456789:connection/abc-123'
    */
-  readonly githubTokenSecretName?: string;
+  readonly codestarConnectionArn?: string;
 
   /**
    * The branch name to deploy.
@@ -72,14 +72,8 @@ export interface AmplifyHostingProps extends StackProps {
   readonly branchName?: string;
 
   /**
-   * The Route53 hosted zone for the domain.
-   * If provided, custom domain will be configured.
-   */
-  readonly hostedZone?: route53.IHostedZone;
-
-  /**
    * The root directory of the app in the monorepo.
-   * @default 'buildinginthecloud'
+   * @default 'website'
    */
   readonly appRoot?: string;
 }

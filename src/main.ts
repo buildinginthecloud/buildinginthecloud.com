@@ -103,16 +103,19 @@ new GitHubOidcStack(app, 'github-oidc', {
   githubRepo: 'buildinginthecloud.com',
 });
 
+// CodeStar Connection ARN for GitHub (OIDC-based authentication)
+const CODESTAR_CONNECTION_ARN =
+  'arn:aws:codeconnections:eu-central-1:517095477860:connection/429386d6-7e5e-40e2-8997-59d4479b9fc1';
+
 // Amplify hosting stack for the Next.js website
 new AmplifyHostingStack(app, 'amplify-hosting-dev', {
   env: devEnv,
   domainName: DOMAIN_NAME,
   githubOwner: 'buildinginthecloud',
   githubRepo: 'buildinginthecloud.com',
-  githubTokenSecretName: 'github-token', // Create this secret in AWS Secrets Manager with a GitHub PAT
+  codestarConnectionArn: CODESTAR_CONNECTION_ARN,
   branchName: 'main',
-  hostedZone: mailRelayStack.hostedZone,
-  appRoot: 'buildinginthecloud', // The subfolder containing the Next.js app
+  appRoot: 'website', // The subfolder containing the Next.js app
 });
 
 app.synth();
