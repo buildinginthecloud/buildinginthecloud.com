@@ -3,8 +3,9 @@ import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
-  output: "standalone", // Required for AWS Amplify SSR deployment
+  output: "export", // Static export for Amplify hosting (avoids SSR bundling issues)
   images: {
+    unoptimized: true, // Required for static export
     remotePatterns: [
       {
         protocol: "https",
@@ -12,6 +13,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Disable trailing slash for cleaner URLs
+  trailingSlash: false,
 };
 
 const withMDX = createMDX({

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Building in the Cloud</title>
+        <link>https://buildinginthecloud.com</link>
+        <description>AWS insights, CDK best practices, and cloud infrastructure tips from Yvo van Zee.</description>
+        <lastBuildDate>Fri, 06 Feb 2026 08:47:27 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <image>
+            <title>Building in the Cloud</title>
+            <url>https://buildinginthecloud.com/og-image.png</url>
+            <link>https://buildinginthecloud.com</link>
+        </image>
+        <copyright>All rights reserved 2026, Yvo van Zee</copyright>
+        <item>
+            <title><![CDATA[Building This Blog with Claude: AI-Assisted Development in Practice]]></title>
+            <link>https://buildinginthecloud.com/blog/building-this-blog-with-claude</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/building-this-blog-with-claude</guid>
+            <pubDate>Mon, 02 Feb 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[In this article I will describe how I built this entire blog in a single day using Claude as my pair programmer, including the tech stack decisions, design iterations, and lessons learned.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Vibe Coding with Amazon Q]]></title>
+            <link>https://buildinginthecloud.com/blog/vibe-coding-with-amazon-q</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/vibe-coding-with-amazon-q</guid>
+            <pubDate>Fri, 23 May 2025 00:00:00 GMT</pubDate>
+            <description><![CDATA[Exploring how Amazon Q's agentic coding capabilities helped me write a Java unit test for cdk-nag, including lessons learned about AI-assisted development.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Agreements]]></title>
+            <link>https://buildinginthecloud.com/blog/agreements</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/agreements</guid>
+            <pubDate>Mon, 21 Oct 2024 00:00:00 GMT</pubDate>
+            <description><![CDATA[How team agreements help organizations navigate the cloud journey by defining roles, responsibilities, and collaboration practices.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[CDK CodeChecker v2: Breaking Free from Third-Party Dependencies]]></title>
+            <link>https://buildinginthecloud.com/blog/cdk-codechecker-v2</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/cdk-codechecker-v2</guid>
+            <pubDate>Wed, 08 May 2024 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how to rebuild the CDK CodeChecker using AWS native resources, eliminating third-party construct dependencies for better maintainability.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Welcome to Building in the Cloud]]></title>
+            <link>https://buildinginthecloud.com/blog/welcome-to-building-in-the-cloud</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/welcome-to-building-in-the-cloud</guid>
+            <pubDate>Mon, 15 Jan 2024 00:00:00 GMT</pubDate>
+            <description><![CDATA[An introduction to this blog about AWS, CDK, and cloud infrastructure best practices.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[CDK CodeChecker]]></title>
+            <link>https://buildinginthecloud.com/blog/cdk-codechecker</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/cdk-codechecker</guid>
+            <pubDate>Tue, 05 Dec 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Implement automated pull request checks with CDK to enforce code reviews, testing, and approval workflows in your AWS CodeCommit repositories.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Test Driven Development for AWS CDK in Python]]></title>
+            <link>https://buildinginthecloud.com/blog/test-driven-development-for-aws-cdk-in-python</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/test-driven-development-for-aws-cdk-in-python</guid>
+            <pubDate>Tue, 09 May 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how to apply Test Driven Development (TDD) principles to AWS CDK projects in Python, using the Red-Green-Refactor approach.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Sometimes you just want parallelism]]></title>
+            <link>https://buildinginthecloud.com/blog/sometimes-you-just-want-parallelism</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/sometimes-you-just-want-parallelism</guid>
+            <pubDate>Tue, 14 Mar 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how parallelism can dramatically improve performance when processing messages and storing data in S3, with Python code examples.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[CDK Pipeline manual approval step with SNS notification]]></title>
+            <link>https://buildinginthecloud.com/blog/cdk-pipeline-manual-approval-step-with-sns-notification</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/cdk-pipeline-manual-approval-step-with-sns-notification</guid>
+            <pubDate>Wed, 19 Oct 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[How to implement a manual approval step with SNS notifications in CDK Pipelines using arbitrary CodePipeline actions.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Securing CDK pipelines]]></title>
+            <link>https://buildinginthecloud.com/blog/securing-cdk-pipelines</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/securing-cdk-pipelines</guid>
+            <pubDate>Mon, 10 Oct 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[Best practices for securing CDK pipelines in enterprise organizations, including constructs, aspects, and preventive measures.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[A day in the life of a Cloud Consultant]]></title>
+            <link>https://buildinginthecloud.com/blog/a-day-in-the-life-of-a-cloud-consultant</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/a-day-in-the-life-of-a-cloud-consultant</guid>
+            <pubDate>Tue, 14 Jun 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[A real-world story about debugging a mysterious CDK synth error and the journey to find a workable solution.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Check and secure CDK code with cdk-nag]]></title>
+            <link>https://buildinginthecloud.com/blog/check-and-secure-cdk-code-with-cdk-nag</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/check-and-secure-cdk-code-with-cdk-nag</guid>
+            <pubDate>Mon, 14 Mar 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how to use cdk-nag from the Construct Hub to check your CDK applications for AWS best practices during synthesize.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Upgrading CDK from CDKv1 to CDKv2 in existing project]]></title>
+            <link>https://buildinginthecloud.com/blog/upgrading-cdk-from-cdkv1-to-cdkv2-in-existing-project</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/upgrading-cdk-from-cdkv1-to-cdkv2-in-existing-project</guid>
+            <pubDate>Fri, 21 Jan 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[A practical guide to migrating your existing CDK project from version 1 to version 2, with real-world tips and troubleshooting.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Secure S3 Bucket construct with CDK version 2]]></title>
+            <link>https://buildinginthecloud.com/blog/secure-s3-bucket-construct-with-cdk-version-2</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/secure-s3-bucket-construct-with-cdk-version-2</guid>
+            <pubDate>Fri, 07 Jan 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[Build a secure S3 bucket CDK construct that complies with enterprise security frameworks using projen and CDK version 2.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[CDK Pipelines and CloudFormation linting]]></title>
+            <link>https://buildinginthecloud.com/blog/cdk-pipelines-and-cloudformation-linting</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/cdk-pipelines-and-cloudformation-linting</guid>
+            <pubDate>Sun, 05 Sep 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how to embed cfn-nag and cfn-lint inside your CDK pipeline to make your infrastructure code more robust and secure.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Testing AWS Lambda function locally]]></title>
+            <link>https://buildinginthecloud.com/blog/testing-aws-lambda-function-locally</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/testing-aws-lambda-function-locally</guid>
+            <pubDate>Thu, 19 Aug 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[Learn how to test your AWS Lambda Python functions locally using python-lambda-local, avoiding the deploy-test-debug cycle.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+        <item>
+            <title><![CDATA[Who am I]]></title>
+            <link>https://buildinginthecloud.com/blog/who-am-i</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/who-am-i</guid>
+            <pubDate>Tue, 17 Aug 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[An introduction to Yvo van Zee, AWS Cloud Consultant and Community Builder, passionate about cloud architecture and helping customers on their cloud journey.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
+    </channel>
+</rss>

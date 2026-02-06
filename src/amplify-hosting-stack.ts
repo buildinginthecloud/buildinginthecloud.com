@@ -55,7 +55,7 @@ export class AmplifyHostingStack extends Stack {
         oauthToken: SecretValue.secretsManager(githubTokenSecretName),
       }),
       autoBranchDeletion: true,
-      platform: amplify.Platform.WEB_COMPUTE, // Required for Next.js SSR
+      platform: amplify.Platform.WEB, // Static export mode (no SSR)
       buildSpec: codebuild.BuildSpec.fromObjectToYaml({
         version: 1,
         applications: [
@@ -67,19 +67,15 @@ export class AmplifyHostingStack extends Stack {
                   commands: ['npm ci'],
                 },
                 build: {
-                  commands: [
-                    'npm run build',
-                    // Clean up duplicate node_modules in .next to prevent bundling errors
-                    'rm -rf .next/standalone/node_modules/.pnpm || true',
-                  ],
+                  commands: ['npm run build'],
                 },
               },
               artifacts: {
-                baseDirectory: '.next',
+                baseDirectory: 'out', // Static export outputs to 'out' folder
                 files: ['**/*'],
               },
               cache: {
-                paths: ['node_modules/**/*', '.next/cache/**/*'],
+                paths: ['node_modules/**/*'],
               },
             },
           },
