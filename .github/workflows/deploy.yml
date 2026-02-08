@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'website/**'
+      - 'src/**'
   workflow_dispatch:
 
 permissions:
@@ -14,11 +15,9 @@ permissions:
 
 env:
   AWS_REGION: eu-central-1
-  S3_BUCKET: buildinginthecloud-com-website
 
 jobs:
-  # Build and deploy website to S3
-  deploy-website:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,7 +28,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: website/package-lock.json
+
+      - name: Install CDK dependencies
+        run: npm ci
 
       - name: Install website dependencies
         working-directory: website
@@ -45,30 +46,5 @@ jobs:
           role-to-assume: arn:aws:iam::517095477860:role/GitHubActionsRole-LandingZone
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get CloudFront Distribution ID
-        id: get-distribution
-        run: |
-          DISTRIBUTION_ID=$(aws cloudformation describe-stacks --stack-name static-hosting --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" --output text)
-          echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
-
-      - name: Deploy to S3
-        working-directory: website
-        run: |
-          aws s3 sync out/ s3://${{ env.S3_BUCKET }} \
-            --delete \
-            --cache-control "public, max-age=31536000, immutable" \
-            --exclude "*.html" \
-            --exclude "*.json"
-
-          # HTML files with shorter cache
-          aws s3 sync out/ s3://${{ env.S3_BUCKET }} \
-            --delete \
-            --cache-control "public, max-age=0, must-revalidate" \
-            --include "*.html" \
-            --include "*.json"
-
-      - name: Invalidate CloudFront cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ steps.get-distribution.outputs.distribution_id }} \
-            --paths "/*"
+      - name: Deploy CDK stacks
+        run: npx cdk deploy --all --require-approval never

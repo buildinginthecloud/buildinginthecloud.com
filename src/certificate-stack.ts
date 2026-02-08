@@ -50,11 +50,10 @@ export class CertificateStack extends Stack {
 
     this.certificateArn = this.certificate.certificateArn;
 
-    // Output the certificate ARN for cross-stack reference
+    // Output the certificate ARN
     new CfnOutput(this, 'CertificateArn', {
       value: this.certificate.certificateArn,
       description: 'ACM Certificate ARN for CloudFront',
-      exportName: `${domainName.replace(/\./g, '-')}-certificate-arn`,
     });
   }
 }

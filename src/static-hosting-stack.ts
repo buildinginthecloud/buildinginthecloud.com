@@ -2,10 +2,10 @@ import { Stack, CfnOutput, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import type { Construct } from 'constructs';
 import type { StaticHostingProps } from './types';
 
@@ -16,34 +16,18 @@ import type { StaticHostingProps } from './types';
  * - S3 bucket for static website content
  * - CloudFront distribution with HTTPS
  * - Route53 DNS records
- * - IAM policy for GitHub Actions deployment
+ * - BucketDeployment to upload website content from a local directory
  *
  * Note: The ACM certificate must be created separately in us-east-1 (see CertificateStack).
- *
- * @example
- * ```typescript
- * new StaticHostingStack(app, 'StaticHostingStack', {
- *   domainName: 'buildinginthecloud.com',
- *   hostedZoneId: 'Z005047721YOSJOMI0XAF',
- *   certificateArn: 'arn:aws:acm:us-east-1:...',
- * });
- * ```
  */
 export class StaticHostingStack extends Stack {
-  /**
-   * The S3 bucket for website content
-   */
   public readonly websiteBucket: s3.Bucket;
-
-  /**
-   * The CloudFront distribution
-   */
   public readonly distribution: cloudfront.Distribution;
 
   constructor(scope: Construct, id: string, props: StaticHostingProps) {
     super(scope, id, props);
 
-    const { domainName = 'buildinginthecloud.com', hostedZoneId, certificateArn, githubActionsRoleArn } = props;
+    const { domainName = 'buildinginthecloud.com', hostedZoneId, certificateArn, websitePath = './website/out' } = props;
 
     // Import the existing hosted zone
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
@@ -57,7 +41,7 @@ export class StaticHostingStack extends Stack {
     // Create S3 bucket for website content
     this.websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
       bucketName: `${domainName.replace(/\./g, '-')}-website`,
-      removalPolicy: RemovalPolicy.RETAIN, // Keep bucket on stack deletion
+      removalPolicy: RemovalPolicy.RETAIN,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       versioned: true,
@@ -81,7 +65,6 @@ export class StaticHostingStack extends Stack {
       domainNames: [domainName, `www.${domainName}`],
       certificate: certificate,
       defaultRootObject: 'index.html',
-      // Handle SPA routing - return index.html for 404s
       errorResponses: [
         {
           httpStatus: 404,
@@ -96,8 +79,16 @@ export class StaticHostingStack extends Stack {
           ttl: Duration.minutes(5),
         },
       ],
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_100, // Use only NA and EU edge locations
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
+    });
+
+    // Deploy website content to S3 and invalidate CloudFront
+    new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+      sources: [s3deploy.Source.asset(websitePath)],
+      destinationBucket: this.websiteBucket,
+      distribution: this.distribution,
+      distributionPaths: ['/*'],
     });
 
     // Create Route53 A record for root domain
@@ -113,21 +104,6 @@ export class StaticHostingStack extends Stack {
       recordName: `www.${domainName}`,
       target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
     });
-
-    // Grant GitHub Actions role permission to deploy to S3 and invalidate CloudFront
-    if (githubActionsRoleArn) {
-      const githubRole = iam.Role.fromRoleArn(this, 'GitHubActionsRole', githubActionsRoleArn);
-
-      this.websiteBucket.grantReadWrite(githubRole);
-      this.websiteBucket.grantDelete(githubRole);
-
-      githubRole.addToPrincipalPolicy(
-        new iam.PolicyStatement({
-          actions: ['cloudfront:CreateInvalidation'],
-          resources: [`arn:aws:cloudfront::${this.account}:distribution/${this.distribution.distributionId}`],
-        }),
-      );
-    }
 
     // Outputs
     new CfnOutput(this, 'WebsiteBucketName', {
