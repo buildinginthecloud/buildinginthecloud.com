@@ -2,7 +2,6 @@ import { Stack, App, Duration } from 'aws-cdk-lib';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import { type Construct } from 'constructs';
 import { CertificateStack } from './certificate-stack';
-import { GitHubOidcStack } from './github-oidc-stack';
 import { StaticHostingStack } from './static-hosting-stack';
 import type { MailRelayProps } from './types';
 import { MAIL_CONFIG } from './types';
@@ -101,13 +100,6 @@ new MailRelay(app, 'buildinginthecloud-mail-relay', {
   hostedZoneId: HOSTED_ZONE_ID, // Use existing hosted zone
 });
 
-// GitHub OIDC stack for secure deployments from GitHub Actions
-const oidcStack = new GitHubOidcStack(app, 'github-oidc', {
-  env: devEnv,
-  githubOwner: 'buildinginthecloud',
-  githubRepo: 'buildinginthecloud.com',
-});
-
 // Certificate stack in us-east-1 (required for CloudFront)
 const certificateStack = new CertificateStack(app, 'certificate', {
   env: usEast1Env,
@@ -122,7 +114,6 @@ new StaticHostingStack(app, 'static-hosting', {
   domainName: DOMAIN_NAME,
   hostedZoneId: HOSTED_ZONE_ID,
   certificateArn: certificateStack.certificateArn,
-  githubActionsRoleArn: oidcStack.roleArn,
   crossRegionReferences: true,
 });
 

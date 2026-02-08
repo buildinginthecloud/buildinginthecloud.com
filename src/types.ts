@@ -20,23 +20,6 @@ export interface MailRelayProps extends StackProps {
 }
 
 /**
- * Configuration properties for the GitHubOidc stack
- */
-export interface GitHubOidcProps extends StackProps {
-  /**
-   * The GitHub repository owner/organization.
-   * @default 'website'
-   */
-  readonly githubOwner?: string;
-
-  /**
-   * The GitHub repository name.
-   * @default 'buildinginthecloud.com'
-   */
-  readonly githubRepo?: string;
-}
-
-/**
  * Configuration properties for the Certificate stack
  */
 export interface CertificateStackProps extends StackProps {
