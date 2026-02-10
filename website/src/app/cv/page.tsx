@@ -28,7 +28,7 @@ const workExperience: WorkExperience[] = [
     title: 'Cloud Consultant',
     company: 'Cloudar',
     location: 'Belgium/Netherlands',
-    period: '2024 - Present',
+    period: 'February 2026 - Present',
     current: true,
     description: 'Helping organizations design and implement cloud solutions on AWS with a focus on infrastructure as code, security best practices, and operational excellence.',
     highlights: [
@@ -42,7 +42,7 @@ const workExperience: WorkExperience[] = [
     title: 'Principal Consultant',
     company: 'FreshMinds',
     location: 'Netherlands',
-    period: 'September 2024',
+    period: 'September 2024 - January 2026',
     current: false,
     description: 'Facilitating an engineering culture where consultants are intrinsically motivated to continuously develop through knowledge sharing, mentorship, and coaching.',
     highlights: [
@@ -55,6 +55,7 @@ const workExperience: WorkExperience[] = [
       {
         client: 'ANWB',
         role: 'Cloud Consultant in Cloud Center of Enablement',
+        description: 'Helped building a Cloud Community within the ANWB by organizing Cloud Days and a Summit. Other tasks where helping teams with their cloud journey and land in AWS. Helped ESB/ISB migrate from on premise to AWS',
       },
     ],
   },
