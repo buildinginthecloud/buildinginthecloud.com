@@ -27,7 +27,12 @@ export class StaticHostingStack extends Stack {
   constructor(scope: Construct, id: string, props: StaticHostingProps) {
     super(scope, id, props);
 
-    const { domainName = 'buildinginthecloud.com', hostedZoneId, certificateArn, websitePath = './website/out' } = props;
+    const {
+      domainName = 'buildinginthecloud.com',
+      hostedZoneId,
+      certificateArn,
+      websitePath = './website/out',
+    } = props;
 
     // Import the existing hosted zone
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
