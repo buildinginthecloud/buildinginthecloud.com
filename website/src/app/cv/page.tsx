@@ -98,6 +98,9 @@ const workExperience: WorkExperience[] = [
         role: 'AWS Lead Architect',
         description: 'Built landing zone and established Cloud Center of Excellence. Led workshops, architected solutions, and helped hire and train internal cloud team.',
       },
+      { client: 'TKP Pensioen', role: 'Cloud consultancy' },
+      { client: 'SURFsara', role: 'Elasticsearch on AWS' },
+      { client: 'SwissCom', role: 'Hackathon in Zurich' },
     ],
   },
   {
@@ -114,6 +117,23 @@ const workExperience: WorkExperience[] = [
       { client: 'ABN AMRO', role: 'Account vending machine development' },
       { client: 'Medis', role: 'AppStream 2.0 training platform' },
       { client: 'ZuidZorg', role: 'Datacenter to cloud migration' },
+      { client: 'Heijmans', role: 'Website hosting on AWS' },
+      { client: 'Tebodin', role: 'Cloud infrastructure' },
+      { client: 'INDI (indi.nl)', role: 'Terraform infrastructure' },
+    ],
+  },
+  {
+    title: 'Technical Consultant',
+    company: 'Sentia',
+    location: 'Netherlands',
+    period: '2008 - 2018',
+    current: false,
+    description: 'Started career as a technical consultant in the on-premise hosting world. Managed mission-critical hosting environments, customer datacenters, and enterprise applications. Gained deep experience with infrastructure, networking, and system administration before transitioning to cloud.',
+    highlights: [
+      'Mission-critical hosting management',
+      'Datacenter & infrastructure operations',
+      'VMware virtualization',
+      'Windows & Linux system administration',
     ],
   },
 ];
@@ -202,6 +222,8 @@ const skills = {
   data: ['Glue', 'Athena', 'EMR', 'MWAA (Airflow)', 'LakeFormation', 'RedShift', 'Confluent Kafka'],
   networking: ['Transit Gateway', 'Direct Connect', 'CloudWAN', 'Network Firewall', 'VPC'],
   security: ['IAM', 'KMS', 'Security Hub', 'GuardDuty', 'Config', 'CloudTrail', 'cdk-nag'],
+  monitoring: ['PagerDuty', 'OpsGenie'],
+  os: ['Linux', 'MacOS', 'Windows'],
 };
 
 export default function CVPage() {
@@ -258,8 +280,9 @@ export default function CVPage() {
           <section className="mb-16">
             <div className="rounded-xl border border-border bg-gradient-to-br from-primary/5 to-accent/5 p-6">
               <p className="text-lg text-foreground/80 leading-relaxed">
-                Experienced Cloud Consultant who loves helping companies on their cloud journey. From setting up
-                Cloud Centers of Excellence, developing AWS Landing Zones, designing complex network architectures,
+                Experienced Cloud Consultant with over 16 years in IT, who loves helping companies on their cloud journey.
+                Starting in on-premise hosting and infrastructure at Sentia, transitioning to AWS cloud consulting in 2018.
+                From setting up Cloud Centers of Excellence, developing AWS Landing Zones, designing complex network architectures,
                 to building Data Analytics Platforms on AWS. Everything based on Infrastructure as Code with
                 CI/CD in mind. As a proud 6x certified AWS Cloud Consultant and AWS Community Builder,
                 gathering and sharing knowledge runs through my veins.
@@ -488,6 +511,28 @@ export default function CVPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {skills.security.map((skill) => (
                     <span key={skill} className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-xs">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="font-semibold mb-3 text-sm">Monitoring</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.monitoring.map((skill) => (
+                    <span key={skill} className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 text-xs">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="font-semibold mb-3 text-sm">Operating Systems</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.os.map((skill) => (
+                    <span key={skill} className="px-2 py-0.5 rounded-full bg-muted text-xs">
                       {skill}
                     </span>
                   ))}
