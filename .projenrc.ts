@@ -119,6 +119,11 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   ],
 });
 
+// Ensure website/out directory exists before CDK synth (post-compile step)
+// The actual website build happens in the deploy workflow; this placeholder
+// prevents BucketDeployment asset validation from failing during synth.
+project.preCompileTask.exec('mkdir -p website/out');
+
 // Add a GitHub workflow to run tests when a pull request is created
 const testWorkflow = project.github!.addWorkflow('test');
 testWorkflow.on({

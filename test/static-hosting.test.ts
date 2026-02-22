@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { StaticHostingStack } from '../src/static-hosting-stack';
@@ -6,6 +9,15 @@ describe('StaticHostingStack', () => {
   let app: App;
   let stack: StaticHostingStack;
   let template: Template;
+  let tempWebsitePath: string;
+
+  beforeAll(() => {
+    tempWebsitePath = fs.mkdtempSync(path.join(os.tmpdir(), 'website-out-'));
+  });
+
+  afterAll(() => {
+    fs.rmSync(tempWebsitePath, { recursive: true, force: true });
+  });
 
   beforeEach(() => {
     app = new App();
@@ -13,6 +25,7 @@ describe('StaticHostingStack', () => {
       domainName: 'test-domain.com',
       hostedZoneId: 'Z123456789',
       certificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+      websitePath: tempWebsitePath,
     });
     template = Template.fromStack(stack);
   });
