@@ -30,6 +30,7 @@ jspm_packages/
 .eslintcache
 *.tgz
 .yarn-integrity
+.claude/
 __pycache__
 __pycache__/
 !.eslintrc.js

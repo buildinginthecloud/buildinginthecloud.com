@@ -85,6 +85,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     },
   },
   gitignore: [
+    '.claude/',
     '__pycache__',
     '__pycache__/',
     '!.eslintrc.js',
