@@ -88,12 +88,16 @@ export class StaticHostingStack extends Stack {
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
     });
 
-    // Deploy website content to S3 and invalidate CloudFront
+    // Deploy website content to S3 and invalidate CloudFront.
+    // waitForDeployment: false prevents the Lambda from timing out while waiting
+    // for the CloudFront invalidation to propagate (can take 10-20 minutes).
+    // The invalidation is still created; it just completes asynchronously.
     new s3deploy.BucketDeployment(this, 'DeployWebsite', {
       sources: [s3deploy.Source.asset(websitePath)],
       destinationBucket: this.websiteBucket,
       distribution: this.distribution,
       distributionPaths: ['/*'],
+      waitForDeployment: false,
     });
 
     // Create Route53 A record for root domain
