@@ -64,6 +64,14 @@ describe('StaticHostingStack', () => {
     });
   });
 
+  test('creates a URL rewrite CloudFront Function', () => {
+    template.hasResourceProperties('AWS::CloudFront::Function', {
+      FunctionConfig: {
+        Runtime: 'cloudfront-js-2.0',
+      },
+    });
+  });
+
   test('creates outputs', () => {
     template.hasOutput('WebsiteBucketName', {});
     template.hasOutput('DistributionId', {});

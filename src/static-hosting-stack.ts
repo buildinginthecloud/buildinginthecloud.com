@@ -57,6 +57,25 @@ export class StaticHostingStack extends Stack {
       signing: cloudfront.Signing.SIGV4_ALWAYS,
     });
 
+    // Rewrite clean URLs to .html files for Next.js static export.
+    // e.g. /cv → /cv.html, /blog/post → /blog/post.html
+    const urlRewriteFunction = new cloudfront.Function(this, 'UrlRewriteFunction', {
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+  if (uri.endsWith('/') && uri !== '/') {
+    request.uri = uri + 'index.html';
+  } else if (!uri.includes('.')) {
+    request.uri = uri + '.html';
+  }
+  return request;
+}
+      `),
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+      comment: 'Rewrite clean URLs to .html files for Next.js static export',
+    });
+
     // Create CloudFront distribution
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
@@ -66,6 +85,12 @@ export class StaticHostingStack extends Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         compress: true,
+        functionAssociations: [
+          {
+            function: urlRewriteFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       domainNames: [domainName, `www.${domainName}`],
       certificate: certificate,
