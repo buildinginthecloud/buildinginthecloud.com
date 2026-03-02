@@ -97,7 +97,7 @@ export class StaticHostingStack extends Stack {
       destinationBucket: this.websiteBucket,
       distribution: this.distribution,
       distributionPaths: ['/*'],
-      waitForDeployment: false,
+      waitForDistributionInvalidation: false,
     });
 
     // Create Route53 A record for root domain
