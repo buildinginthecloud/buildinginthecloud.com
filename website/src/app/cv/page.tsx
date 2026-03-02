@@ -55,7 +55,7 @@ const workExperience: WorkExperience[] = [
       {
         client: 'ANWB',
         role: 'Cloud Consultant in Cloud Center of Enablement',
-        description: 'Helped building a Cloud Community within the ANWB by organizing Cloud Days and a Summit. Other tasks where helping teams with their cloud journey and land in AWS. Helped ESB/ISB migrate from on premise to AWS',
+        description: 'Part of the Cloud Center of Enablement (CCoE), the consulting arm of the ANWB Cloud team. Guided application teams in their cloud journey on AWS and Azure. Organized monthly Cloud Days (knowledge sharing sessions) and a large-scale Cloud Summit with external speakers. Contributed to the migration program, specifically the ESB/ISB migration from JBoss web servers on-premise to EKS Fargate on AWS, setting up infrastructure and network integrations. Co-initiated the Cloud Solution Library, providing reusable building blocks to help teams accelerate cloud adoption.',
       },
     ],
   },
