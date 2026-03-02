@@ -17,6 +17,31 @@ export interface CertificateStackProps extends StackProps {
 }
 
 /**
+ * Configuration properties for the Redirect stack
+ */
+export interface RedirectProps extends StackProps {
+  /**
+   * The domain name to redirect from (e.g. 'yvovanzee.nl').
+   */
+  readonly domainName: string;
+
+  /**
+   * The ID of the Route53 hosted zone for the redirect domain.
+   */
+  readonly hostedZoneId: string;
+
+  /**
+   * The ARN of the ACM certificate (must be in us-east-1).
+   */
+  readonly certificateArn: string;
+
+  /**
+   * The full URL to redirect to (e.g. 'https://buildinginthecloud.com/cv').
+   */
+  readonly redirectTo: string;
+}
+
+/**
  * Configuration properties for the StaticHosting stack
  */
 export interface StaticHostingProps extends StackProps {
