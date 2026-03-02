@@ -5,7 +5,6 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import type { Construct } from 'constructs';
 import type { StaticHostingProps } from './types';
 
@@ -16,7 +15,9 @@ import type { StaticHostingProps } from './types';
  * - S3 bucket for static website content
  * - CloudFront distribution with HTTPS
  * - Route53 DNS records
- * - BucketDeployment to upload website content from a local directory
+ *
+ * Website content is deployed via the CI/CD pipeline using aws s3 sync,
+ * not via CDK BucketDeployment, to avoid Lambda timeout issues.
  *
  * Note: The ACM certificate must be created separately in us-east-1 (see CertificateStack).
  */
@@ -31,7 +32,6 @@ export class StaticHostingStack extends Stack {
       domainName = 'buildinginthecloud.com',
       hostedZoneId,
       certificateArn,
-      websitePath = './website/out',
     } = props;
 
     // Import the existing hosted zone
@@ -86,18 +86,6 @@ export class StaticHostingStack extends Stack {
       ],
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
-    });
-
-    // Deploy website content to S3 and invalidate CloudFront.
-    // waitForDeployment: false prevents the Lambda from timing out while waiting
-    // for the CloudFront invalidation to propagate (can take 10-20 minutes).
-    // The invalidation is still created; it just completes asynchronously.
-    new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-      sources: [s3deploy.Source.asset(websitePath)],
-      destinationBucket: this.websiteBucket,
-      distribution: this.distribution,
-      distributionPaths: ['/*'],
-      waitForDistributionInvalidation: false,
     });
 
     // Create Route53 A record for root domain

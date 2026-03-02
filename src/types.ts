@@ -60,10 +60,4 @@ export interface StaticHostingProps extends StackProps {
    * The ARN of the ACM certificate (must be in us-east-1).
    */
   readonly certificateArn: string;
-
-  /**
-   * Path to the built website output directory.
-   * @default './website/out'
-   */
-  readonly websitePath?: string;
 }
