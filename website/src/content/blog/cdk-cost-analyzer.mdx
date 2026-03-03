@@ -1,0 +1,332 @@
+---
+title: "CDK Cost Analyzer: Infrastructure Cost Visibility for CDK"
+description: "How I built a tool to analyze AWS CDK infrastructure costs before deployment, including diff mode for pull requests and CI/CD integration with cost thresholds."
+date: "2026-03-03"
+tags: ["AWS", "CDK", "Cost Optimization", "DevOps"]
+featured: false
+author: "Yvo van Zee"
+coverImage: "/images/blog/cdk-cost-analyzer-cover.png"
+---
+
+## Background: My CDK Cost Problem
+
+I've been working with AWS CDK for a while now, and I love it. Define infrastructure in TypeScript, run `cdk deploy`, and everything's provisioned. It's elegant, it's powerful, and it makes infrastructure feel like just another part of my codebase.
+
+But there's this one question that kept coming up during every project: "How much is this going to cost?"
+
+On a recent project, I was building a new microservices platform. We were using ECS Fargate, Application Load Balancers, NAT Gateways, ElastiCache; the usual suspects. Every time my team lead asked about monthly costs, the answer required digging through the AWS Pricing Calculator, cross-referencing documentation for each service, and manually piecing together estimates. That process easily ate up 30 minutes or more per infrastructure change. Time better spent actually building features.
+
+Here's the thing: budget constraints are real. When you're pitching a new feature to stakeholders, you need a cost estimate. And when the monthly AWS bill arrives higher than expected? That's a conversation nobody wants to have.
+
+## Here's Where My Problem Started
+
+So there I was, reviewing a pull request from a colleague. The change added an ElastiCache Redis cluster for session caching. The CDK code looked clean, the architecture made sense, so I approved it. We merged it and deployed to production.
+
+Fast forward to the end of the month. The AWS bill showed an extra $250 for ElastiCache. The developer had chosen a `cache.r6g.large` node type with Multi-AZ replication. Perfectly valid for production, but a `cache.t4g.medium` would have been more than enough for our workload at a fraction of the cost.
+
+The worst part? This wasn't a mistake. The code was correct, the architecture was sound. But during the PR review, we only looked at code quality and functionality. Nobody opened the pricing page to check what that specific node type would cost. And that's the core problem: cost is not part of the standard code review workflow.
+
+## The Manual Approach (That Cost Too Much Time)
+
+I tried doing this properly. For the next infrastructure change, I sat down with the CloudFormation template CDK generated and started manually calculating costs:
+
+1. Open the template, identify all the resources
+2. Look up each service in the AWS Pricing Calculator and the pricing documentation
+3. Make assumptions about usage (how many Lambda invocations? how much S3 storage?)
+4. Cross-reference with the AWS pricing pages for region-specific rates
+5. Add it all up in a spreadsheet
+
+This took me well over 30 minutes. For a single stack. And I still wasn't confident in my numbers because I had to guess at usage patterns, and pricing documentation is spread across dozens of pages.
+
+The AWS Pricing Calculator is a great tool, but it doesn't integrate with my CDK workflow. I can't automatically check if my infrastructure changes increase costs. I can't enforce cost thresholds in CI/CD. I can't compare costs between different versions of my stack. Every estimate means another round of manual lookups.
+
+There had to be a better way.
+
+## The Solution I Built
+
+That's when I started working on cdk-cost-analyzer. The idea was simple: analyze CloudFormation templates and calculate estimated monthly costs automatically. Query the AWS Pricing API for current pricing, apply reasonable usage assumptions, and give me a number I can actually work with.
+
+I wanted three things:
+
+**Single Template Analysis**: Just tell me what this stack will cost.
+
+**Diff Mode**: Show me the cost difference between two versions.
+
+**CI/CD Integration**: Catch cost increases automatically in my pipeline.
+
+### What It Supports
+
+Right now, the tool handles 13 AWS services, the ones I use most often:
+
+**Compute**: Lambda, EC2, ECS (both Fargate and EC2)
+
+**Storage**: S3
+
+**Database**: RDS (MySQL, PostgreSQL, Aurora, etc.) and DynamoDB
+
+**Networking**: NAT Gateway, ALB, NLB, VPC Endpoints
+
+**Content Delivery**: CloudFront
+
+**API Management**: API Gateway (REST, HTTP, WebSocket)
+
+**Caching**: ElastiCache
+
+It queries the AWS Pricing API for real, current pricing in your region. No hardcoded prices that go stale.
+
+## How I Use It
+
+### Installation
+
+I keep it simple.
+
+```bash
+# Global installation
+npm install -g cdk-cost-analyzer
+
+# Or just use npx
+npx cdk-cost-analyzer --help
+```
+
+The tool queries the AWS Pricing API to fetch current pricing data, so you need AWS credentials with `pricing:GetProducts` and `pricing:DescribeServices` permissions. The Pricing API is only available in `us-east-1` and `ap-south-1`, but the tool handles that automatically and can calculate costs for any region.
+
+### My First Analysis
+
+First, synthesize your CDK app to generate the CloudFormation templates:
+
+```bash
+npx cdk synth
+```
+
+Then run the analyzer on the generated template:
+
+```bash
+npx cdk-cost-analyzer analyze cdk.out/MyStack.template.json
+```
+
+Example output:
+
+```text
+Total Monthly Cost: $89.43 USD
+Region: eu-central-1
+
+Cost Breakdown:
+- NAT Gateway:              $43.16 (48.3%)
+- Application Load Balancer: $25.55 (28.6%)
+- ECS Fargate Service:      $20.72 (23.2%)
+
+Total Resources: 36
+Supported Resources: 3
+Unsupported Resources: 33
+```
+
+Immediately I could see that the NAT Gateway accounted for nearly half the monthly cost. This is exactly the kind of insight you need before deploying, not after.
+
+### Comparing Costs with Diff Mode
+
+This is where it gets really useful. Before merging any infrastructure PR, I run:
+
+```bash
+npx cdk-cost-analyzer compare \
+  cdk.out.before/MyStack.template.json \
+  cdk.out.after/MyStack.template.json
+```
+
+Output:
+
+```text
+Total Cost Delta: +$2.08
+
+ADDED RESOURCES:
+  • Lambda Function: +$2.08/month [medium confidence]
+    - 1,000,000 invocations per month
+    - 128MB memory allocation
+    - 1000ms average duration
+
+  • DynamoDB Table: $0.00 [unknown - not yet supported]
+  • API Gateway: $0.00 [unknown - not yet supported]
+```
+
+Now when I review PRs, I immediately see the cost impact. No more opening pricing pages or guessing. It changes the conversation from technical implementation to business value.
+
+### Automating It in CI/CD
+
+I added this to my GitLab CI pipeline:
+
+```yaml
+cost-analysis:
+  stage: cost-analysis
+  image: node:18
+  before_script:
+    - npm install -g cdk-cost-analyzer
+  script:
+    - |
+      cdk-cost-analyzer pipeline \
+        --synth \
+        --cdk-app-path ./infrastructure \
+        --region us-east-1 \
+        --format markdown \
+        --post-to-gitlab
+  only:
+    - merge_requests
+```
+
+Now every merge request gets a cost analysis comment automatically. My team sees cost implications during code review, not after deployment.
+
+For GitHub-based projects, the same approach works with GitHub Actions:
+
+```yaml
+name: Cost Analysis
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze-costs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install CDK Cost Analyzer
+        run: npm install -g cdk-cost-analyzer
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Run cost analysis
+        run: |
+          cdk-cost-analyzer pipeline \
+            --synth \
+            --cdk-app-path ./infrastructure \
+            --region us-east-1 \
+            --format markdown > cost-report.md
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('cost-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+```
+
+Note that the `Configure AWS credentials` step uses `role-to-assume` with OIDC, which is the recommended approach over static access keys. The role needs the `pricing:GetProducts` and `pricing:DescribeServices` permissions mentioned earlier.
+
+### Setting Cost Thresholds
+
+I configured thresholds to fail the pipeline if costs get out of hand:
+
+```yaml
+# .cdk-cost-analyzer.yml
+thresholds:
+  environments:
+    production:
+      warning: 25   # USD per month
+      error: 100    # Fails the pipeline
+    development:
+      warning: 100
+      error: 500
+```
+
+If someone tries to add infrastructure that increases production costs by more than $100/month, the pipeline fails. They need to justify it before we merge.
+
+### Customizing for My Usage
+
+The default assumptions didn't match my actual usage, so I customized them:
+
+```yaml
+# .cdk-cost-analyzer.yml
+region: eu-central-1
+assumptions:
+  natGateway:
+    dataProcessingGB: 500  # We process way more than the default
+  lambda:
+    monthlyInvocations: 5000000  # High traffic API
+    averageDurationMs: 200
+  alb:
+    newConnectionsPerSecond: 100
+    processedBytesGB: 2000
+```
+
+This gave me much more accurate estimates for my specific workload.
+
+## What I've Learned
+
+### Cost Visibility Changes Everything
+
+Seeing the cost impact of each resource before deploying changes the decision-making process. That ElastiCache cluster with an oversized node type? You catch it during the PR review instead of on the monthly bill. It enables informed choices: maybe you downsize the instance, maybe you keep it, but at least you know what you're signing up for.
+
+### Diff Mode Transforms Code Review
+
+I still review infrastructure PRs by reading the CDK code, but now I also see the cost impact alongside the code changes. If the diff says "+$50/month," I know to ask questions. If it says "+$2/month," I probably don't need to dig deep into the pricing details.
+
+### Automation Prevents Surprises
+
+Since adding this to CI/CD, we haven't had a single surprise cost increase. Every change is analyzed, every cost increase is visible, and nothing slips through.
+
+### Custom Assumptions Matter
+
+The default assumptions are reasonable, but they're not your assumptions. I customized mine based on CloudWatch metrics from our existing infrastructure, and the estimates became much more accurate.
+
+### Understanding Confidence Levels
+
+Not all cost estimates are equally reliable, and the tool is transparent about that. Each estimate comes with a confidence level:
+
+- **High**: Based on AWS Pricing API data with minimal assumptions. Think EC2 instances with a specified instance type, or RDS with a defined instance class.
+- **Medium**: Based on Pricing API data with standard usage assumptions. Lambda functions, NAT Gateways, and Load Balancers fall in this category.
+- **Low**: Estimated based on typical usage patterns with significant assumptions, like ECS on EC2 where costs depend on the underlying instances.
+- **Unknown**: The resource type is not yet supported by the tool.
+
+This helps you judge how much weight to give each estimate during your review.
+
+### It's Not Perfect, But It's Better
+
+The tool doesn't support every AWS service. It doesn't include data transfer costs. It doesn't account for Reserved Instances or Savings Plans. But it's still way better than manually calculating costs or, worse, not calculating them at all.
+
+## Try It Yourself
+
+CDK Cost Analyzer is fully open source. I'm currently developing it with the help of [Kiro](https://kiro.dev) and [Claude](https://claude.ai), but this is very much a community project. Whether you want to add support for additional AWS services, improve pricing calculations, or fix a bug, every contribution is welcome.
+
+- **GitHub**: [github.com/buildinginthecloud/cdk-cost-analyzer](https://github.com/buildinginthecloud/cdk-cost-analyzer)
+- **npm**: [npmjs.com/package/cdk-cost-analyzer](https://www.npmjs.com/package/cdk-cost-analyzer)
+
+Install it and analyze your infrastructure:
+
+```bash
+npx cdk-cost-analyzer analyze cdk.out/YourStack.template.json
+```
+
+Open an issue if you run into something, or submit a PR if you want to help out. I built this to solve my own problem, but I'm hoping it helps others too.
+
+## Final Thoughts
+
+I'm not saying you should obsess over every dollar of infrastructure cost. But you should know what you're spending. You should be able to answer when someone asks "How much will this cost?" And you should catch expensive changes before they hit production.
+
+CDK Cost Analyzer helps me do that. Maybe it'll help you too.
+
+Give it a try on your next CDK project. Let me know how it goes.
+
+---
+
+*Have questions about CDK cost optimization or infrastructure as code? Find me on [Twitter](https://twitter.com/yvthepief) or [LinkedIn](https://linkedin.com/in/yvovanzee).*
