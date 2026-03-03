@@ -161,12 +161,7 @@
     },
     "pre-compile": {
       "name": "pre-compile",
-      "description": "Prepare the project for compilation",
-      "steps": [
-        {
-          "exec": "mkdir -p website/out"
-        }
-      ]
+      "description": "Prepare the project for compilation"
     },
     "synth": {
       "name": "synth",
