@@ -31,7 +31,7 @@ export function Footer() {
                 <span className="font-bold text-lg">Building in the Cloud</span>
               </Link>
               <p className="text-sm text-foreground/60 max-w-xs">
-                A tech enthusiast's journey through AWS, CDK, and cloud infrastructure.
+                A tech enthusiast&apos;s journey through AWS, CDK, and cloud infrastructure.
                 Built with ☕ and curiosity.
               </p>
               {/* AWS Community Builder Badge */}

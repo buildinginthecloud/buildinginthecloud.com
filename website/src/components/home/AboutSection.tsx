@@ -78,8 +78,8 @@ export function AboutSection() {
               </h2>
 
               <p className="text-lg text-foreground/70 mb-6">
-                I'm a tech enthusiast who believes that infrastructure should be as enjoyable to build
-                as the applications running on it. When I'm not deploying stacks, I'm exploring
+                I&apos;m a tech enthusiast who believes that infrastructure should be as enjoyable to build
+                as the applications running on it. When I&apos;m not deploying stacks, I&apos;m exploring
                 new AWS services or contributing to open source.
               </p>
 

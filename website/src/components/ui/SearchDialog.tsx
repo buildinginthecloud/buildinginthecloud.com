@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, FileText, ArrowRight } from 'lucide-react';
 import Fuse from 'fuse.js';
@@ -14,32 +14,28 @@ interface SearchDialogProps {
 export function SearchDialog({ posts }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<PostMeta[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
 
-  const fuse = new Fuse(posts, {
-    keys: ['title', 'description', 'tags'],
-    threshold: 0.3,
-    includeScore: true,
-  });
-
-  const handleSearch = useCallback(
-    (searchQuery: string) => {
-      if (!searchQuery.trim()) {
-        setResults(posts.slice(0, 5));
-        return;
-      }
-      const searchResults = fuse.search(searchQuery);
-      setResults(searchResults.map((result) => result.item).slice(0, 5));
-    },
-    [posts, fuse]
+  const fuse = useMemo(
+    () =>
+      new Fuse(posts, {
+        keys: ['title', 'description', 'tags'],
+        threshold: 0.3,
+        includeScore: true,
+      }),
+    [posts]
   );
 
-  useEffect(() => {
-    handleSearch(query);
-    setSelectedIndex(0);
-  }, [query, handleSearch]);
+  const results = useMemo<PostMeta[]>(() => {
+    if (!query.trim()) {
+      return posts.slice(0, 5);
+    }
+    return fuse
+      .search(query)
+      .map((result) => result.item)
+      .slice(0, 5);
+  }, [query, posts, fuse]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,7 +104,10 @@ export function SearchDialog({ posts }: SearchDialogProps) {
               type="text"
               placeholder="Search posts..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedIndex(0);
+              }}
               autoFocus
               className="flex-1 bg-transparent py-4 text-lg outline-none placeholder:text-muted-foreground"
             />
@@ -170,7 +169,7 @@ export function SearchDialog({ posts }: SearchDialogProps) {
               </ul>
             ) : (
               <div className="py-8 text-center text-muted-foreground">
-                No results found for "{query}"
+                No results found for &quot;{query}&quot;
               </div>
             )}
           </div>

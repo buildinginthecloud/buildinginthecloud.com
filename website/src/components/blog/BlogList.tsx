@@ -50,7 +50,7 @@ export function BlogList({ posts }: BlogListProps) {
       ) : (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
-            No posts found matching "{searchQuery}"
+            No posts found matching &quot;{searchQuery}&quot;
           </p>
         </div>
       )}

@@ -23,7 +23,7 @@ export function Hero() {
 
             {/* Headline */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Hey, I'm{' '}
+              Hey, I&apos;m{' '}
               <span className="text-primary">Yvo</span>
               <br />
               <span className="text-3xl md:text-4xl lg:text-5xl">I build things in the cloud</span>
@@ -32,7 +32,7 @@ export function Hero() {
             {/* Introduction - more personal */}
             <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-xl">
               Cloud Consultant at Cloudar by day, tinkerer by night. I love turning complex AWS challenges
-              into elegant CDK solutions. Let's explore the cloud together! ☁️
+              into elegant CDK solutions. Let&apos;s explore the cloud together! ☁️
             </p>
 
             {/* Stats/highlights */}
