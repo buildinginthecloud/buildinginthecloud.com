@@ -225,20 +225,20 @@ const certifications = [
 
 const skills = {
   cloud: ['AWS', 'Cloud Architecture', 'Multi-Account Strategy', 'Landing Zones', 'Well-Architected Framework'],
-  iac: ['AWS CDK', 'CloudFormation', 'Terraform'],
+  iac: ['AWS CDK', 'CloudFormation', 'Terraform', 'Terragrunt'],
   programming: ['Python', 'TypeScript', 'Bash'],
-  containers: ['Docker', 'ECS', 'Fargate', 'EKS'],
-  cicd: ['AWS CodePipeline', 'CodeBuild', 'GitHub Actions', 'Azure DevOps', 'Jenkins'],
+  containers: ['Docker', 'ECS', 'Fargate', 'EKS', 'Helm', 'ArgoCD'],
+  cicd: ['AWS CodePipeline', 'CodeBuild', 'GitHub Actions', 'GitLab CI', 'Azure DevOps', 'Jenkins'],
   data: ['Glue', 'Athena', 'EMR', 'MWAA (Airflow)', 'LakeFormation', 'RedShift', 'Confluent Kafka'],
   networking: ['Transit Gateway', 'Direct Connect', 'CloudWAN', 'Network Firewall', 'VPC'],
-  security: ['IAM', 'KMS', 'Security Hub', 'GuardDuty', 'Config', 'CloudTrail', 'cdk-nag'],
-  monitoring: ['PagerDuty', 'OpsGenie'],
+  security: ['IAM', 'IAM Identity Center', 'KMS', 'Security Hub', 'GuardDuty', 'Config', 'CloudTrail', 'cdk-nag'],
+  monitoring: ['CloudWatch', 'Splunk Observability', 'PagerDuty', 'OpsGenie'],
   os: ['Linux', 'MacOS', 'Windows'],
 };
 
 export default function CVPage() {
   return (
-    <div className="py-16 md:py-24">
+    <div className="py-16 md:py-24 print:py-0">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -255,7 +255,7 @@ export default function CVPage() {
             </div>
 
             {/* Quick links */}
-            <div className="flex flex-wrap justify-center gap-3 mt-6">
+            <div className="flex flex-wrap justify-center gap-3 mt-6 print:hidden">
               <a
                 href="https://linkedin.com/in/yvovanzee"
                 target="_blank"
@@ -577,7 +577,7 @@ export default function CVPage() {
           </section>
 
           {/* Call to Action */}
-          <section className="text-center">
+          <section className="text-center print:hidden">
             <div className="rounded-xl border border-border bg-gradient-to-br from-primary/5 to-accent/5 p-8">
               <h2 className="text-2xl font-bold mb-4">Let&apos;s Work Together</h2>
               <p className="text-foreground/70 mb-6">

@@ -302,3 +302,46 @@ html {
 .animate-bounce-slow {
   animation: bounce-slow 2s ease-in-out infinite;
 }
+
+/* Print: light theme, no site chrome, keep CV entries together */
+@media print {
+  :root,
+  .dark {
+    --background: #ffffff;
+    --foreground: #134e4a;
+    --primary: #0d9488;
+    --primary-foreground: #ffffff;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  html {
+    font-size: 11px;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header,
+  footer {
+    display: none;
+  }
+
+  h2 {
+    break-after: avoid;
+  }
+
+  .grid > div,
+  li {
+    break-inside: avoid;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

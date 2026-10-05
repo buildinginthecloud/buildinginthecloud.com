@@ -4,7 +4,7 @@
         <title>Building in the Cloud</title>
         <link>https://buildinginthecloud.com</link>
         <description>AWS insights, CDK best practices, and cloud infrastructure tips from Yvo van Zee.</description>
-        <lastBuildDate>Mon, 02 Mar 2026 10:02:29 GMT</lastBuildDate>
+        <lastBuildDate>Mon, 05 Oct 2026 17:12:11 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
@@ -14,6 +14,14 @@
             <link>https://buildinginthecloud.com</link>
         </image>
         <copyright>All rights reserved 2026, Yvo van Zee</copyright>
+        <item>
+            <title><![CDATA[CDK Cost Analyzer: Infrastructure Cost Visibility for CDK]]></title>
+            <link>https://buildinginthecloud.com/blog/cdk-cost-analyzer</link>
+            <guid isPermaLink="false">https://buildinginthecloud.com/blog/cdk-cost-analyzer</guid>
+            <pubDate>Fri, 27 Feb 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[How I built a tool to analyze AWS CDK infrastructure costs before deployment, including diff mode for pull requests and CI/CD integration with cost thresholds.]]></description>
+            <author>yvo@buildinginthecloud.com (Yvo van Zee)</author>
+        </item>
         <item>
             <title><![CDATA[Building This Blog with Claude: AI-Assisted Development in Practice]]></title>
             <link>https://buildinginthecloud.com/blog/building-this-blog-with-claude</link>
