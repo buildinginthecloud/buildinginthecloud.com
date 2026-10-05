@@ -174,7 +174,7 @@ const certifications = [
   {
     name: 'AWS Certified DevOps Engineer - Professional',
     issuer: 'Amazon Web Services',
-    expiry: 'October 2025',
+    expiry: 'October 2028',
     badge: '🏆',
     level: 'Professional',
     credlyUrl: 'https://www.credly.com/badges/e6a6d0c8-91d3-458d-b8a6-9656d638ea6a',
@@ -190,7 +190,7 @@ const certifications = [
   {
     name: 'AWS Certified Developer - Associate',
     issuer: 'Amazon Web Services',
-    expiry: 'October 2025',
+    expiry: 'October 2028',
     badge: '📜',
     level: 'Associate',
     credlyUrl: 'https://www.credly.com/badges/26637f2a-48e1-4f81-a852-9fdec35271c1',
@@ -198,7 +198,7 @@ const certifications = [
   {
     name: 'AWS Certified SysOps Administrator - Associate',
     issuer: 'Amazon Web Services',
-    expiry: 'October 2025',
+    expiry: 'October 2028',
     badge: '📜',
     level: 'Associate',
     credlyUrl: 'https://www.credly.com/badges/6e1fd6e1-36dd-42e7-a11b-2a5d3d80b994',
@@ -569,7 +569,7 @@ export default function CVPage() {
           {/* Call to Action */}
           <section className="text-center">
             <div className="rounded-xl border border-border bg-gradient-to-br from-primary/5 to-accent/5 p-8">
-              <h2 className="text-2xl font-bold mb-4">Let's Work Together</h2>
+              <h2 className="text-2xl font-bold mb-4">Let&apos;s Work Together</h2>
               <p className="text-foreground/70 mb-6">
                 Interested in collaborating on cloud projects or need AWS consultancy?
               </p>
