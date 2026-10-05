@@ -32,10 +32,20 @@ const workExperience: WorkExperience[] = [
     current: true,
     description: 'Helping organizations design and implement cloud solutions on AWS with a focus on infrastructure as code, security best practices, and operational excellence.',
     highlights: [
-      'AWS architecture and solution design',
-      'Infrastructure as Code with CDK',
-      'Cloud migration and modernization',
-      'Security and compliance',
+      'AWS platform engineering with Terraform, Terragrunt and GitLab CI',
+      'FinOps: cost allocation, reporting and optimization',
+      'Serverless integration platforms (API Gateway, Lambda, WAF, mTLS)',
+      'EKS and GitOps with ArgoCD and Helm',
+      'IAM Identity Center and multi-account governance',
+      'AI-assisted engineering tooling (Claude Code, MCP)',
+    ],
+    projects: [
+      {
+        client: 'TKP Pensioen',
+        role: 'Cloud Engineer, Cloud Application Hosting (platform team)',
+        description:
+          'Platform engineer in the team that runs the AWS multi-account organization for 17 pension funds (70+ accounts, 50+ EKS clusters), managed entirely with Terraform, Terragrunt and GitLab CI. Designed and built the FinOps cost dashboard from the ground up: a Python collector over Cost and Usage Report 2.0 parquet with EKS split-cost allocation, team attribution and per-principal Bedrock attribution, reconciled against Cost Explorer and served as a static site on GitLab Pages. A fleet-wide Lambda cost analysis led to right-sized provisioned concurrency across 47 accounts and a backlog of unused functions. On the API Gateway and Lambda integration platform delivered S3 archiving of large payloads, ServiceNow to Intune integrations and TLS 1.3 enforcement for the DigiD audit. Hardened the internal Terraform pipeline generator after a production incident with pagination guardrails and a static checker that surfaced 75+ unpaginated AWS API calls. Designed IAM Identity Center permission sets, fixed platform-wide breakglass assignments, resolved ArgoCD and Helm GitOps issues across 27 chart repositories, and rotated in as weekly support engineer. Built Claude Code based triage tooling for the support channel on top of a verified knowledge base of 1,000+ historical cases.',
+      },
     ],
   },
   {
