@@ -40,8 +40,7 @@ describe('RedirectStack', () => {
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
       DistributionConfig: {
         ViewerCertificate: {
-          AcmCertificateArn:
-            'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+          AcmCertificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
         },
       },
     });

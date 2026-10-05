@@ -11,11 +11,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Install dependencies
+        id: install_dependencies
         run: npm install
       - name: Run tests
+        id: run_tests
         run: npx projen test
