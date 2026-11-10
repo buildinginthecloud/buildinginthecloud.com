@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'website/**'
+      - 'site/**'
       - 'src/**'
   workflow_dispatch:
 
@@ -26,18 +26,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
 
       - name: Install CDK dependencies
         run: npm ci
 
       - name: Install website dependencies
-        working-directory: website
+        working-directory: site
         run: npm ci
 
+      - name: Check website
+        working-directory: site
+        run: npm run check
+
       - name: Build website
-        working-directory: website
+        working-directory: site
         run: npm run build
 
       - name: Configure AWS credentials
@@ -56,7 +63,7 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --query 'Stacks[0].Outputs[?OutputKey==`WebsiteBucketName`].OutputValue' \
             --output text)
-          aws s3 sync website/out "s3://${BUCKET_NAME}" --delete
+          aws s3 sync site/dist "s3://${BUCKET_NAME}" --delete
 
       - name: Invalidate CloudFront cache
         run: |
