@@ -1,7 +1,13 @@
-import { awscdk } from 'projen';
-import { DependabotScheduleInterval } from 'projen/lib/github';
+import { awscdk, JsonPatch } from 'projen';
+import { AutoQueue, DependabotScheduleInterval } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
 import { NodePackageManager } from 'projen/lib/javascript';
+
+const DEPENDABOT_COOLDOWN_DAYS = 7;
+const IGNORE_MAJOR_UPDATES = {
+  'dependency-name': '*',
+  'update-types': ['version-update:semver-major'],
+};
 
 const project = new awscdk.AwsCdkTypeScriptApp({
   authorName: 'Yvo van Zee',
@@ -57,26 +63,14 @@ const project = new awscdk.AwsCdkTypeScriptApp({
       },
     },
     ignore: [{ dependencyName: 'aws-cdk-lib' }, { dependencyName: 'aws-cdk' }],
+    // Wait a week before proposing a new release, so a compromised or broken
+    // release is usually withdrawn before it reaches this repository.
+    cooldown: { defaultDays: DEPENDABOT_COOLDOWN_DAYS },
   },
   githubOptions: {
-    mergify: true,
-    mergifyOptions: {
-      rules: [
-        {
-          name: 'Automatic merge for Dependabot pull requests',
-          conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test', 'check-success=site'],
-          actions: {
-            review: {
-              type: 'APPROVE',
-              message: 'Thanks for the PR! I will merge it now.',
-            },
-            merge: {
-              method: 'merge',
-            },
-          },
-        },
-      ],
-    },
+    // Dependabot pull requests are merged by GitHub auto-merge (see AutoQueue
+    // below), not by Mergify.
+    mergify: false,
     pullRequestLintOptions: {
       semanticTitle: true,
       semanticTitleOptions: {
@@ -120,15 +114,33 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   ],
 });
 
+const dependabotFile = project.tryFindObjectFile('.github/dependabot.yml');
+
+// Major updates are not proposed, so they are never merged automatically.
+// Projen has no option for update types, so the rule is appended to the
+// ignore list of the root package with a JSON patch.
+dependabotFile?.patch(JsonPatch.add('/updates/0/ignore/-', IGNORE_MAJOR_UPDATES));
+
 // Dependabot for the Astro site in site/. Projen only configures the root
 // package, so the second entry is added to the generated file.
-project.tryFindObjectFile('.github/dependabot.yml')?.addToArray('updates', {
+dependabotFile?.addToArray('updates', {
   'package-ecosystem': 'npm',
   'versioning-strategy': 'lockfile-only',
   directory: '/site',
   schedule: { interval: 'weekly' },
   labels: ['dependencies', 'auto-approve'],
   groups: { site: { patterns: ['*'] } },
+  ignore: [IGNORE_MAJOR_UPDATES],
+  cooldown: { 'default-days': DEPENDABOT_COOLDOWN_DAYS },
+});
+
+// Enable GitHub auto-merge on Dependabot pull requests. GitHub merges them
+// when the required status checks on main pass. This relies on the branch
+// protection of main: without required checks a pull request would merge at
+// once.
+new AutoQueue(project.github!, {
+  allowedUsernames: ['dependabot[bot]'],
+  targetBranches: ['main'],
 });
 
 // Add a GitHub workflow to run tests when a pull request is created
