@@ -1,0 +1,18 @@
+# Local development: docker compose up
+# The site is served on http://localhost:4321 with hot reload.
+services:
+  site:
+    image: node:24-alpine
+    working_dir: /repo/site
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "4321:4321"
+    volumes:
+      # The repository root is mounted because the content and static assets
+      # still live in ../website during the migration.
+      - ..:/repo
+      # Keep the Linux node_modules separate from the ones on the host.
+      - site_node_modules:/repo/site/node_modules
+
+volumes:
+  site_node_modules:
