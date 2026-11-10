@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+ * Design tokens. One accent color (teal), everything else is neutral.
+ * The theme script in Base.astro sets data-theme on <html>. Without
+ * JavaScript the media query below follows the system setting.
+ */
+:root {
+  --bg: #fcfcfb;
+  --surface: #f4f4f1;
+  --fg: #1c1b19;
+  --muted: #66655f;
+  --line: #e5e4df;
+  --accent: #0f766e;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1413;
+  --surface: #161d1c;
+  --fg: #e8eae9;
+  --muted: #98a19f;
+  --line: #252e2c;
+  --accent: #2dd4bf;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0f1413;
+    --surface: #161d1c;
+    --fg: #e8eae9;
+    --muted: #98a19f;
+    --line: #252e2c;
+    --accent: #2dd4bf;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Map the typography plugin to the tokens so prose follows the theme. */
+.prose {
+  --tw-prose-body: var(--fg);
+  --tw-prose-headings: var(--fg);
+  --tw-prose-lead: var(--muted);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--fg);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--muted);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--fg);
+  --tw-prose-quote-borders: var(--line);
+  --tw-prose-captions: var(--muted);
+  --tw-prose-code: var(--fg);
+  --tw-prose-th-borders: var(--line);
+  --tw-prose-td-borders: var(--line);
+}
+
+.prose :where(h1, h2, h3) {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Inline code: no literal backticks, a quiet background instead. */
+.prose :not(pre) > code {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-weight: 500;
+}
+
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none;
+}
+
+.prose pre {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+
+.prose img {
+  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+}
+
+/*
+ * Print, mainly for /cv: always the light theme on A4. The site header and
+ * footer are hidden with print:hidden in Base.astro.
+ */
+@media print {
+  :root,
+  :root[data-theme],
+  :root:not([data-theme]) {
+    --bg: #ffffff;
+    --surface: #f4f4f1;
+    --fg: #1c1b19;
+    --muted: #55544f;
+    --line: #d9d8d3;
+    --accent: #0f766e;
+    color-scheme: light;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  html {
+    font-size: 10.5px;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  li,
+  .cv-entry > div:first-child {
+    break-inside: avoid;
+  }
+}
+
+/* Matched words in search results. */
+.search-excerpt mark {
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--fg);
+  border-radius: 0.2rem;
+  padding: 0 0.15em;
+}
+
+/*
+ * Code blocks: Shiki emits the light theme inline and the dark theme as
+ * --shiki-dark variables. Switch to the dark values in the dark theme.
+ */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .astro-code,
+  :root:not([data-theme]) .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+@media print {
+  .astro-code,
+  .astro-code span {
+    color: inherit;
+  }
+}
+
+/* Section links added to post headings by the script in blog/[id].astro. */
+.heading-anchor {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+:is(h2, h3):hover > .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
+}

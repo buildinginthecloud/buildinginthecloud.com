@@ -1,0 +1,18 @@
+# Local development: docker compose up
+# The site is served on http://localhost:4321 with hot reload.
+services:
+  site:
+    image: node:24-alpine
+    working_dir: /app
+    # search:index builds the site once so that /search also works on the dev
+    # server. The index is a snapshot; restart the container to refresh it.
+    command: sh -c "npm ci && npm run search:index && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "4321:4321"
+    volumes:
+      - .:/app
+      # Keep the Linux node_modules separate from the ones on the host.
+      - site_node_modules:/app/node_modules
+
+volumes:
+  site_node_modules:

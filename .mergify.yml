@@ -17,6 +17,7 @@ pull_request_rules:
       - author=dependabot[bot]
       - check-success=build
       - check-success=test
+      - check-success=site
     actions:
       review:
         type: APPROVE

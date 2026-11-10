@@ -64,7 +64,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
       rules: [
         {
           name: 'Automatic merge for Dependabot pull requests',
-          conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test'],
+          conditions: ['author=dependabot[bot]', 'check-success=build', 'check-success=test', 'check-success=site'],
           actions: {
             review: {
               type: 'APPROVE',
@@ -118,6 +118,17 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     'var/',
     'venv/',
   ],
+});
+
+// Dependabot for the Astro site in site/. Projen only configures the root
+// package, so the second entry is added to the generated file.
+project.tryFindObjectFile('.github/dependabot.yml')?.addToArray('updates', {
+  'package-ecosystem': 'npm',
+  'versioning-strategy': 'lockfile-only',
+  directory: '/site',
+  schedule: { interval: 'weekly' },
+  labels: ['dependencies', 'auto-approve'],
+  groups: { site: { patterns: ['*'] } },
 });
 
 // Add a GitHub workflow to run tests when a pull request is created

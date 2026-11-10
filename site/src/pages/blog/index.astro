@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { getPosts, getTags } from '../../lib/posts';
+
+const posts = await getPosts();
+const tags = getTags(posts);
+---
+
+<Base title="Blog" description="Articles about AWS, CDK, Terraform, security and building with AI.">
+  <header class="py-14">
+    <h1 class="font-serif text-4xl font-semibold tracking-tight">Blog</h1>
+    <p class="mt-4 max-w-xl text-lg text-muted">
+      {posts.length} articles about AWS, infrastructure as code and the tools I build along the way.
+    </p>
+    <ul aria-label="Tags" class="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+      {
+        tags.map((tag) => (
+          <li>
+            <a href={`/blog/tag/${tag.slug}`} class="text-muted transition-colors hover:text-accent">
+              {tag.name} <span class="tabular-nums opacity-70">{tag.count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <PostList posts={posts} />
+</Base>
