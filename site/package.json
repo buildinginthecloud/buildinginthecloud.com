@@ -11,6 +11,7 @@
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "check": "astro check",
+    "check:links": "node scripts/check-links.mjs dist",
     "search:index": "astro build && pagefind --site dist --output-path public/pagefind"
   },
   "dependencies": {

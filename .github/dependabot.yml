@@ -21,3 +21,15 @@ updates:
         exclude-patterns:
           - aws-cdk*
           - projen
+  - package-ecosystem: npm
+    versioning-strategy: lockfile-only
+    directory: /site
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - auto-approve
+    groups:
+      site:
+        patterns:
+          - "*"

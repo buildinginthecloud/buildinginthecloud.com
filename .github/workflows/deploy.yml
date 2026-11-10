@@ -47,6 +47,10 @@ jobs:
         working-directory: site
         run: npm run build
 
+      - name: Check internal links
+        working-directory: site
+        run: npm run check:links
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
