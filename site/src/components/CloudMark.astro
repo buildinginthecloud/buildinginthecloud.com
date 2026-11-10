@@ -1,0 +1,47 @@
+---
+// Placeholder illustration for the hero until there is a portrait photo:
+// building blocks rising out of a cloud. Colors come from the theme tokens.
+const W = 34; // Half width of a block
+const H = 17; // Half height of the top face
+const S = 38; // Height of the sides
+
+function block(cx: number, cy: number) {
+  return {
+    top: `${cx},${cy - H} ${cx + W},${cy} ${cx},${cy + H} ${cx - W},${cy}`,
+    left: `${cx - W},${cy} ${cx},${cy + H} ${cx},${cy + H + S} ${cx - W},${cy + S}`,
+    right: `${cx + W},${cy} ${cx},${cy + H} ${cx},${cy + H + S} ${cx + W},${cy + S}`,
+  };
+}
+
+// Back to front, so later blocks overlap earlier ones.
+const blocks = [
+  block(126, 150),
+  block(126, 112),
+  block(126, 74),
+  block(160, 167),
+  block(160, 129),
+  block(194, 184),
+];
+---
+
+<svg viewBox="0 0 320 320" role="img" aria-label="Building blocks rising out of a cloud" class="h-auto w-full">
+  <rect width="320" height="320" rx="28" fill="var(--surface)"></rect>
+  <g stroke="var(--bg)" stroke-width="2" stroke-linejoin="round">
+    {
+      blocks.map((b) => (
+        <>
+          <polygon points={b.left} fill="color-mix(in srgb, var(--accent) 72%, var(--surface))" />
+          <polygon points={b.right} fill="color-mix(in srgb, var(--accent) 45%, var(--surface))" />
+          <polygon points={b.top} fill="var(--accent)" />
+        </>
+      ))
+    }
+  </g>
+  <g fill="var(--bg)">
+    <circle cx="92" cy="236" r="30"></circle>
+    <circle cx="136" cy="224" r="38"></circle>
+    <circle cx="186" cy="230" r="34"></circle>
+    <circle cx="228" cy="240" r="26"></circle>
+    <rect x="62" y="236" width="192" height="32" rx="16"></rect>
+  </g>
+</svg>
