@@ -73,6 +73,8 @@ npx cdk deploy --all --profile mgmt
 
 ### Website (Astro)
 
+The full development guide, including the Docker workflow and how to write a post, is in [site/README.md](site/README.md).
+
 Run the development server in Docker. The site is served on http://localhost:4321 with hot reload.
 
 ```bash
