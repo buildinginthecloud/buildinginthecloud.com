@@ -147,7 +147,7 @@ testWorkflow.addJobs({
     steps: [
       {
         name: 'Checkout',
-        uses: 'actions/checkout@v4',
+        uses: 'actions/checkout@v7',
         with: {
           ref: '${{ github.event.pull_request.head.ref }}',
           repository: '${{ github.event.pull_request.head.repo.full_name }}',
