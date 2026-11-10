@@ -53,7 +53,8 @@ export class StaticHostingStack extends Stack {
       signing: cloudfront.Signing.SIGV4_ALWAYS,
     });
 
-    // Rewrite clean URLs to .html files for Next.js static export.
+    // Rewrite clean URLs to .html files. The Astro site in site/ is built with
+    // build.format "file", which emits /cv.html and /blog/post.html.
     // e.g. /cv → /cv.html, /blog/post → /blog/post.html
     const urlRewriteFunction = new cloudfront.Function(this, 'UrlRewriteFunction', {
       code: cloudfront.FunctionCode.fromInline(`

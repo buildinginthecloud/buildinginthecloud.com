@@ -11,13 +11,16 @@ This monorepo contains the infrastructure and website code for [buildingintheclo
 │   ├── github-oidc-stack.ts     # GitHub OIDC IAM role
 │   └── types.ts            # TypeScript interfaces
 ├── test/                   # CDK tests
-├── website/                # Next.js website
+├── site/                   # Astro website
 │   ├── src/
-│   │   ├── app/            # Next.js App Router pages
-│   │   ├── components/     # React components
+│   │   ├── pages/          # Routes (home, blog, about, CV, search, feed)
+│   │   ├── layouts/        # Base layout with header and footer
+│   │   ├── components/     # Astro components
 │   │   ├── content/blog/   # MDX blog posts
-│   │   └── lib/            # Utility functions
-│   └── public/             # Static assets
+│   │   ├── data/           # CV content
+│   │   └── lib/            # Post helpers
+│   ├── public/             # Static assets
+│   └── compose.yaml        # Local development in Docker
 ├── .github/workflows/      # GitHub Actions
 └── .projenrc.ts            # Projen configuration
 ```
@@ -48,8 +51,9 @@ The infrastructure consists of three CDK stacks:
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22.23.4 or later (required by Astro 7)
 - npm
+- Docker (optional, for local development of the website)
 - AWS CLI configured with the `mgmt` profile
 
 ## Quick Start
@@ -67,20 +71,36 @@ npm test
 npx cdk deploy --all --profile mgmt
 ```
 
-### Website (Next.js)
+### Website (Astro)
+
+Run the development server in Docker. The site is served on http://localhost:4321 with hot reload.
 
 ```bash
-cd website
+cd site
+docker compose up
+```
+
+Or run it directly with Node.js:
+
+```bash
+cd site
 
 # Install dependencies
-npm install
+npm ci
 
-# Run development server
+# Run the development server
 npm run dev
 
-# Build for production
+# Type-check the project
+npm run check
+
+# Build for production into dist/ and generate the search index
 npm run build
 ```
+
+The search page needs the Pagefind index. `npm run build` generates it for production. For the development server, run `npm run search:index` once. The Docker setup does this at startup.
+
+To publish a post, add an `.mdx` file to `site/src/content/blog/`. The build validates the frontmatter against the schema in `site/src/content.config.ts`.
 
 ## Deployment
 
@@ -101,9 +121,9 @@ npx cdk deploy static-hosting --profile mgmt
 3. **Deploy the website** (manual first time, then automatic):
 
 ```bash
-cd website
+cd site
 npm run build
-aws s3 sync out/ s3://buildinginthecloud-com-website --delete --profile mgmt
+aws s3 sync dist/ s3://buildinginthecloud-com-website --delete --profile mgmt
 ```
 
 ### Automatic Deployments
@@ -111,16 +131,17 @@ aws s3 sync out/ s3://buildinginthecloud-com-website --delete --profile mgmt
 After initial setup, deployments happen automatically via GitHub Actions when you push to `main`:
 
 1. **Infrastructure job**: Deploys CDK changes
-2. **Website job**: Builds Next.js and syncs to S3, then invalidates CloudFront cache
+2. **Website job**: Builds the Astro site and syncs it to S3, then invalidates the CloudFront cache
 
 ## Website Features
 
-- **Next.js 16** with App Router
-- **Static Export** for fast CDN delivery
-- **MDX Blog** with syntax highlighting
-- **Dark/Light Theme** support
-- **RSS Feed** and **Sitemap** generation
-- **Tailwind CSS** for styling
+- **Astro 7** static build, served as plain HTML without a client-side framework
+- **MDX blog** with content collections, syntax highlighting, tags and reading time
+- **Search** with Pagefind, a static index generated at build time
+- **Dark and light theme**
+- **RSS feed** and **sitemap** generation
+- **Tailwind CSS 4** for styling
+- **Printable CV** on A4
 
 ## Available Commands
 
