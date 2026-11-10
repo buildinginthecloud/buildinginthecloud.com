@@ -3,7 +3,6 @@
 !/.projen/tasks.json
 !/.projen/deps.json
 !/.projen/files.json
-!/.mergify.yml
 !/.github/workflows/pull-request-lint.yml
 !/.github/workflows/auto-approve.yml
 !/package.json
@@ -83,5 +82,6 @@ junit.xml
 /cdk.out/
 .cdk.staging/
 .parcel-cache/
+!/.github/workflows/auto-queue.yml
 !/.github/workflows/test.yml
 !/.projenrc.ts

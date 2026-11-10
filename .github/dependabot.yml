@@ -11,6 +11,9 @@ updates:
       - dependency-name: aws-cdk-lib
       - dependency-name: aws-cdk
       - dependency-name: projen
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
     labels:
       - dependencies
       - auto-approve
@@ -21,6 +24,8 @@ updates:
         exclude-patterns:
           - aws-cdk*
           - projen
+    cooldown:
+      default-days: 7
   - package-ecosystem: npm
     versioning-strategy: lockfile-only
     directory: /site
@@ -33,3 +38,9 @@ updates:
       site:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+    cooldown:
+      default-days: 7
