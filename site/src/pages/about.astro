@@ -1,0 +1,102 @@
+---
+import Base from '../layouts/Base.astro';
+
+const links = [
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/yvovanzee' },
+  { label: 'GitHub', href: 'https://github.com/yvthepief' },
+  { label: 'Email', href: 'mailto:yvo@buildinginthecloud.com' },
+];
+
+const elsewhere = [
+  { label: 'DEV Community', detail: '@yvthepief', href: 'https://dev.to/yvthepief' },
+  { label: 'AWS Community', detail: 'Community Builder', href: 'https://community.aws' },
+  { label: 'Personal blog', detail: 'yvovanzee.nl', href: 'https://yvovanzee.nl' },
+  { label: 'Cloudar', detail: 'My employer', href: 'https://cloudar.be' },
+];
+
+const linkClass =
+  'underline decoration-line decoration-2 underline-offset-4 transition-colors hover:decoration-accent';
+const sectionClass = 'border-t border-line py-10';
+const headingClass = 'font-serif text-2xl font-semibold tracking-tight';
+---
+
+<Base
+  title="Who am I"
+  description="Learn more about Yvo van Zee, Cloud Consultant at Cloudar and AWS Community Builder."
+>
+  <header class="py-14">
+    <h1 class="font-serif text-4xl font-semibold tracking-tight">Who am I?</h1>
+    <p class="mt-3 text-lg font-medium text-accent">Cloud Consultant at Cloudar and AWS Community Builder</p>
+    <ul class="mt-6 flex flex-wrap gap-6 text-sm font-medium">
+      {
+        links.map((link) => (
+          <li>
+            <a href={link.href} class={linkClass}>
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+
+  <section aria-labelledby="about-me" class={sectionClass}>
+    <h2 id="about-me" class={headingClass}>About me</h2>
+    <div class="prose mt-5 max-w-none">
+      <p>
+        Hi, my name is Yvo and I am a force to be reckoned with in the world of cloud computing! As a proud AWS Cloud
+        Consultant and AWS Community Builder, I am passionate about helping customers and people in general on their
+        cloud journey from start to finish.
+      </p>
+      <p>
+        I spend my days architecting and building high-available environments that are as sleek as they are secure.
+        Whether it is Infrastructure as Code or Continuous Integration and Delivery, I am always looking for creative
+        solutions that solve even the most challenging problems.
+      </p>
+      <p>
+        Need a Landing Zone designed? A DataLake created in AWS? I am your go-to guy for all things cloud-related. And
+        when it comes to development tools, I am skilled at using them to speed up the deployment process.
+      </p>
+      <p>
+        On this blog, I write about my day-to-day experiences in the field as an AWS Cloud Consultant. I try to write
+        about the AWS cloud in a readable and fun way, based on my personal experiences. So grab a cup of coffee and
+        join me on this cloud journey!
+      </p>
+    </div>
+  </section>
+
+  <section aria-labelledby="current-role" class={sectionClass}>
+    <h2 id="current-role" class={headingClass}>Current role</h2>
+    <p class="mt-5 font-medium">Cloud Consultant <span class="font-normal text-accent">at Cloudar</span></p>
+    <p class="mt-2 max-w-2xl text-muted">
+      At Cloudar, I help organizations design and implement cloud solutions on AWS. My focus is on infrastructure as
+      code, security best practices, and operational excellence. Every day brings new challenges and opportunities to
+      build something great.
+    </p>
+    <a href="/cv" class:list={[linkClass, 'mt-5 inline-block text-sm font-medium']}>Read my full CV</a>
+  </section>
+
+  <section aria-labelledby="beyond" class={sectionClass}>
+    <h2 id="beyond" class={headingClass}>Beyond the cloud</h2>
+    <p class="mt-5 max-w-2xl text-muted">
+      When I am not building in the cloud, I am a devoted husband and proud father of three kids. Family time is just as
+      important as cloud time!
+    </p>
+  </section>
+
+  <section aria-labelledby="elsewhere" class={sectionClass}>
+    <h2 id="elsewhere" class={headingClass}>Find me elsewhere</h2>
+    <ul class="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+      {
+        elsewhere.map((item) => (
+          <li>
+            <a href={item.href} class="font-medium transition-colors hover:text-accent">
+              {item.label}
+            </a>
+            <p class="text-sm text-muted">{item.detail}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

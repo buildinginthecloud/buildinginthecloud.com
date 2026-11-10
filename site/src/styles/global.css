@@ -107,3 +107,46 @@ button:focus-visible {
   border-radius: 0.5rem;
   border: 1px solid var(--line);
 }
+
+/*
+ * Print, mainly for /cv: always the light theme on A4. The site header and
+ * footer are hidden with print:hidden in Base.astro.
+ */
+@media print {
+  :root,
+  :root[data-theme],
+  :root:not([data-theme]) {
+    --bg: #ffffff;
+    --surface: #f4f4f1;
+    --fg: #1c1b19;
+    --muted: #55544f;
+    --line: #d9d8d3;
+    --accent: #0f766e;
+    color-scheme: light;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  html {
+    font-size: 10.5px;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  li,
+  .cv-entry > div:first-child {
+    break-inside: avoid;
+  }
+}
