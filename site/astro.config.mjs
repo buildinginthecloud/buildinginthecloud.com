@@ -6,9 +6,6 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   site: 'https://buildinginthecloud.com',
-  // Temporary during the migration: reuse the static assets of the Next.js
-  // site. Move them to site/public when website/ is removed.
-  publicDir: '../website/public',
   build: {
     // Emit /blog/post.html instead of /blog/post/index.html. The CloudFront
     // function in src/static-hosting-stack.ts rewrites /blog/post to

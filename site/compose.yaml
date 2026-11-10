@@ -4,7 +4,9 @@ services:
   site:
     image: node:24-alpine
     working_dir: /repo/site
-    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    # search:index builds the site once so that /search also works on the dev
+    # server. The index is a snapshot; restart the container to refresh it.
+    command: sh -c "npm ci && npm run search:index && npm run dev -- --host 0.0.0.0"
     ports:
       - "4321:4321"
     volumes:

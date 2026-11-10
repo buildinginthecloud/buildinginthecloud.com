@@ -150,3 +150,11 @@ button:focus-visible {
     break-inside: avoid;
   }
 }
+
+/* Matched words in search results. */
+.search-excerpt mark {
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--fg);
+  border-radius: 0.2rem;
+  padding: 0 0.15em;
+}
