@@ -66,10 +66,6 @@
       "type": "build"
     },
     {
-      "name": "projen-pipelines",
-      "type": "build"
-    },
-    {
       "name": "projen",
       "version": "0.104.0",
       "type": "build"
@@ -98,10 +94,6 @@
     {
       "name": "constructs",
       "version": "^10.5.1",
-      "type": "runtime"
-    },
-    {
-      "name": "projen-pipelines",
       "type": "runtime"
     }
   ],

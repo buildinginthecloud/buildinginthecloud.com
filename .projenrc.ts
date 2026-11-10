@@ -17,8 +17,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   projenVersion: '0.104.0', // Find the latest projen version here: https://www.npmjs.com/package/projen
   projenrcTs: true,
   release: false,
-  deps: ['projen-pipelines', 'aws-cdk-github-oidc'],
-  devDeps: ['projen-pipelines', 'aws-cdk-github-oidc'],
+  deps: ['aws-cdk-github-oidc'],
+  devDeps: ['aws-cdk-github-oidc'],
   prettier: true,
   prettierOptions: {
     settings: {

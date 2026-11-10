@@ -45,7 +45,6 @@
     "jest-junit": "^17",
     "prettier": "^3.5.3",
     "projen": "0.104.0",
-    "projen-pipelines": "^0.3.3",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
@@ -53,8 +52,7 @@
   "dependencies": {
     "aws-cdk-github-oidc": "^2.4.1",
     "aws-cdk-lib": "2.272.0",
-    "constructs": "^10.5.1",
-    "projen-pipelines": "^0.3.3"
+    "constructs": "^10.5.1"
   },
   "devEngines": {
     "packageManager": {
