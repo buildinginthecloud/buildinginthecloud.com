@@ -1,0 +1,58 @@
+---
+title: "Moving This Blog from Next.js to Astro"
+description: "Nine months after building this blog with Next.js and Claude, I moved it to Astro. Same posts, same URLs, a lot less code."
+date: "2026-11-10"
+tags: ["AI", "Astro", "Migration", "Developer Experience"]
+featured: false
+draft: true
+author: "Yvo van Zee"
+---
+
+## Background
+
+In February I wrote about [building this blog with Claude](/blog/building-this-blog-with-claude) in a single day. It was a Next.js site with a static export, MDX posts and a lot of teal. And to be honest, it worked fine.
+
+So why touch it? Well, I kept seeing people around me switch to Astro. And then I came across a personal site which was just calm. One column, a short bio, a list of posts. No gradients, no terminal animation. I looked at my own homepage and it was a bit of a Christmas tree.
+
+## Real-world scenario
+
+So I asked Claude the honest question first: should I move to Astro at all, or is this just me wanting a new toy?
+
+The answer was not what I expected. The migration would not give my visitors anything they were missing. It would cost me a rewrite of around 3,500 lines of TSX. But my site is exactly the type of site Astro is made for: static content, an MDX blog and almost no interaction. For that I was shipping a complete React runtime.
+
+There were two options.
+
+- Stay on Next.js. No work at all. Impediment: I keep maintaining my own code for reading posts, generating the RSS feed and searching.
+- Move to Astro. Content collections, RSS and a sitemap come out of the box. Impediment: every page needs to be rebuilt.
+
+So Astro it was. Challenge accepted.
+
+## The result
+
+We did it in phases, each with its own commit. First a bare list of posts to prove that all 18 MDX files would build. Then the design, the blog pages, About and my CV, search, and finally the cutover.
+
+A few numbers:
+
+- 52 pages build in about 3 seconds
+- The build output went from 16 MB of images alone to 7 MB for the complete site, because Astro converts the images to WebP
+- The packages `next`, `react`, `next-mdx-remote`, `gray-matter`, `feed`, `fuse.js` and `next-themes` are gone
+- The URLs did not change, so no redirects were needed
+
+That last one was a nice surprise. My CloudFront function already rewrites `/blog/post` to `/blog/post.html`, and Astro can build exactly that layout with `build.format: 'file'`. So the infrastructure stayed untouched.
+
+It did not all go smoothly. The favicon got lost in the move, because it was hiding in a folder nobody looked at. And while checking the live site we found out that my homepage had been served through a CloudFront error page all this time. It worked by accident. OK a bit embarrassing for a Cloud Consultant.
+
+Search is now done by Pagefind. It builds an index after the build, so there is no server and no API involved.
+
+## Summary
+
+Was it necessary? No. Was it worth it? I think so. The site is calmer, the code is smaller, and writing a new post is still just adding an MDX file.
+
+And local development now runs in Docker with one command:
+
+```bash
+cd site
+docker compose up
+```
+
+So do not be afraid to throw away something that works, as long as you know why you are doing it!
