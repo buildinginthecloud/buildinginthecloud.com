@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .top { fill: #0f766e; }
+    .left { fill: #3f958e; }
+    .right { fill: #8fc2bd; }
+    @media (prefers-color-scheme: dark) {
+      .top { fill: #2dd4bf; }
+      .left { fill: #22a797; }
+      .right { fill: #17756b; }
+    }
+  </style>
+  <g transform="translate(2 -5)">
+    <polygon class="left" points="12,34 24,40 24,53 12,47" />
+    <polygon class="right" points="36,34 24,40 24,53 36,47" />
+    <polygon class="top" points="24,28 36,34 24,40 12,34" />
+    <polygon class="left" points="12,21 24,27 24,40 12,34" />
+    <polygon class="right" points="36,21 24,27 24,40 36,34" />
+    <polygon class="top" points="24,15 36,21 24,27 12,21" />
+    <polygon class="left" points="24,40 36,46 36,59 24,53" />
+    <polygon class="right" points="48,40 36,46 36,59 48,53" />
+    <polygon class="top" points="36,34 48,40 36,46 24,40" />
+  </g>
+</svg>

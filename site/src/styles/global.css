@@ -158,3 +158,43 @@ button:focus-visible {
   border-radius: 0.2rem;
   padding: 0 0.15em;
 }
+
+/*
+ * Code blocks: Shiki emits the light theme inline and the dark theme as
+ * --shiki-dark variables. Switch to the dark values in the dark theme.
+ */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .astro-code,
+  :root:not([data-theme]) .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+@media print {
+  .astro-code,
+  .astro-code span {
+    color: inherit;
+  }
+}
+
+/* Section links added to post headings by the script in blog/[id].astro. */
+.heading-anchor {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+:is(h2, h3):hover > .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
+}

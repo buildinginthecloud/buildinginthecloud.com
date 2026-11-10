@@ -13,6 +13,12 @@ export default defineConfig({
     format: 'file',
   },
   trailingSlash: 'never',
+  markdown: {
+    shikiConfig: {
+      // Both themes are emitted; global.css switches to the dark one.
+      themes: { light: 'github-light', dark: 'github-dark' },
+    },
+  },
   integrations: [mdx(), sitemap()],
   vite: {
     plugins: [tailwindcss()],

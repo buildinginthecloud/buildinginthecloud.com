@@ -4,15 +4,21 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  /** Path or URL of the social preview image. Defaults to the site image. */
+  image?: string;
+  type?: 'website' | 'article';
 }
 
 const siteName = 'Building in the Cloud';
 const {
   title,
   description = 'Notes on AWS, CDK, Terraform and building with Claude by Yvo van Zee.',
+  image = '/og-default.png',
+  type = 'website',
 } = Astro.props;
 const pageTitle = title ? `${title} | ${siteName}` : siteName;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const socialImage = new URL(image, Astro.site);
 
 const nav = [
   { label: 'Blog', href: '/blog' },
@@ -35,11 +41,16 @@ const isActive = (href: string) => Astro.url.pathname.startsWith(href);
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title={siteName} href="/feed.xml" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={siteName} />
+    <meta property="og:type" content={type} />
+    <meta property="og:image" content={socialImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={socialImage} />
     <script is:inline>
       // Apply a stored theme before first paint to avoid a flash.
       try {

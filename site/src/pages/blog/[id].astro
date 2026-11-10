@@ -1,19 +1,27 @@
 ---
+import { getImage, Image } from 'astro:assets';
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { formatDate, getPosts, readingTime, tagSlug } from '../../lib/posts';
 
 export async function getStaticPaths() {
-  const posts = await getPosts();
-  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+  const posts = await getPosts(); // Newest first.
+  return posts.map((post, index) => ({
+    params: { id: post.id },
+    props: { post, newer: posts[index - 1], older: posts[index + 1] },
+  }));
 }
 
-const { post } = Astro.props;
+const { post, newer, older } = Astro.props;
 const { Content, headings } = await render(post);
 const sections = headings.filter((heading) => heading.depth === 2);
+
+const cover = post.data.coverImage;
+// Social networks expect a JPEG or PNG of about 1200 pixels wide.
+const socialImage = cover ? (await getImage({ src: cover, width: 1200, format: 'jpg' })).src : undefined;
 ---
 
-<Base title={post.data.title} description={post.data.description}>
+<Base title={post.data.title} description={post.data.description} image={socialImage} type="article">
   <article class="py-14" data-pagefind-body>
     <header class="border-b border-line pb-8">
       <p data-pagefind-ignore class="text-sm text-muted">
@@ -41,6 +49,19 @@ const sections = headings.filter((heading) => heading.depth === 2);
     </header>
 
     {
+      cover && (
+        <Image
+          src={cover}
+          alt=""
+          widths={[768, 1536]}
+          sizes="(min-width: 768px) 728px, 100vw"
+          loading="eager"
+          class="mt-8 w-full rounded-lg border border-line"
+        />
+      )
+    }
+
+    {
       sections.length >= 3 && (
         <details data-pagefind-ignore class="mt-8 rounded-lg border border-line bg-surface px-5 py-4 text-sm">
           <summary class="cursor-pointer font-medium">On this page</summary>
@@ -57,12 +78,50 @@ const sections = headings.filter((heading) => heading.depth === 2);
       )
     }
 
-    <div class="prose mt-10 max-w-none">
+    <div id="post-content" class="prose mt-10 max-w-none">
       <Content />
     </div>
 
     <footer data-pagefind-ignore class="mt-14 border-t border-line pt-8 text-sm">
-      <a href="/blog" class="text-muted transition-colors hover:text-accent">All posts</a>
+      <nav aria-label="More posts" class="grid gap-6 sm:grid-cols-2">
+        <div>
+          {
+            older && (
+              <>
+                <p class="text-muted">Previous post</p>
+                <a href={`/blog/${older.id}`} class="mt-1 block font-medium transition-colors hover:text-accent">
+                  {older.data.title}
+                </a>
+              </>
+            )
+          }
+        </div>
+        <div class="sm:text-right">
+          {
+            newer && (
+              <>
+                <p class="text-muted">Next post</p>
+                <a href={`/blog/${newer.id}`} class="mt-1 block font-medium transition-colors hover:text-accent">
+                  {newer.data.title}
+                </a>
+              </>
+            )
+          }
+        </div>
+      </nav>
+      <a href="/blog" class="mt-8 inline-block text-muted transition-colors hover:text-accent">All posts</a>
     </footer>
   </article>
+
+  <script is:inline>
+    // Add a link to each section heading so a section can be shared.
+    for (const heading of document.querySelectorAll('#post-content :is(h2, h3)[id]')) {
+      const anchor = document.createElement('a');
+      anchor.href = `#${heading.id}`;
+      anchor.className = 'heading-anchor';
+      anchor.setAttribute('aria-label', `Link to the section ${heading.textContent}`);
+      anchor.textContent = '#';
+      heading.append(anchor);
+    }
+  </script>
 </Base>

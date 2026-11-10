@@ -5,7 +5,7 @@ date: "2023-12-05"
 tags: ["AWS", "CDK", "Code Review", "Automation"]
 featured: false
 author: "Yvo van Zee"
-coverImage: "/images/blog/cdk-codechecker-cover.jpeg"
+coverImage: "../../assets/blog/cdk-codechecker-cover.jpeg"
 ---
 
 ## Background
@@ -60,7 +60,7 @@ So within the DevOps Agreements, we have stated 3 important rules:
 
 What we want to achieve: A Developer pushes to a feature branch, and depending on which branch the pull request is created, develop or main branch, several approvals need to be given. The creation of a pull request triggers an event which kicks off a CodeBuild project which will run tests and linting. When everything passes, approval will be given by the CodeChecker and you only need one approval from your colleague to continue the merge to main.
 
-![CodeChecker Architecture](/images/blog/cdk-codechecker-architecture.png)
+![CodeChecker Architecture](../../assets/blog/cdk-codechecker-architecture.png)
 
 ## GO Build
 

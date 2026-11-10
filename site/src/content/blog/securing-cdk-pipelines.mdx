@@ -5,7 +5,7 @@ date: "2022-10-10"
 tags: ["AWS", "CDK", "Pipeline", "Security"]
 featured: false
 author: "Yvo van Zee"
-coverImage: "/images/blog/securing-cdk-pipelines-cover.png"
+coverImage: "../../assets/blog/securing-cdk-pipelines-cover.png"
 ---
 
 On the 3rd of October, I did a meetup style presentation on the AWS Community day in The Netherlands. The topic was how to secure CDK pipelines in an enterprise organization. This blog will describe the slides I presented.
@@ -16,7 +16,7 @@ Working in an enterprise organization will bring extra security requirements to 
 
 ## Enterprise vs Start-Ups
 
-![Enterprise vs Start-Ups](/images/blog/securing-cdk-pipelines-01.png)
+![Enterprise vs Start-Ups](../../assets/blog/securing-cdk-pipelines-01.png)
 
 Enterprises often consist of departments, think of the Cloud Center of Excellence (a Platform team), CISO, Networking, firewall, Linux and IAM team. Where a Start-Up often consists of a single team.
 
@@ -24,13 +24,13 @@ The Enterprise also has processes in place. For example a company in the financi
 
 ## Stakeholders
 
-![Stakeholders](/images/blog/securing-cdk-pipelines-02.png)
+![Stakeholders](../../assets/blog/securing-cdk-pipelines-02.png)
 
 Because you often work in sprints there are stakeholders in place: the developer, a product owner who decides on what gets prioritized, the Cloud Center of Excellence who are responsible for the landing zone and set the boundaries for developers, and the CISO - the team you want to keep happy all the time.
 
 ## Security Posture
 
-![Security Posture](/images/blog/securing-cdk-pipelines-03.png)
+![Security Posture](../../assets/blog/securing-cdk-pipelines-03.png)
 
 Within an enterprise they often make use of the CIA (confidentiality, integrity and availability) rating to approve services. Every service is checked and depending on the depth of the CIA rating, adhere to certain rules. Think of a bucket that needs to be encrypted with KMS CMK. This all is written down in a so-called service catalogue.
 
@@ -38,7 +38,7 @@ All the services deployed by developers need to adhere to the rules in the servi
 
 ## DevOps rules
 
-![DevOps rules](/images/blog/securing-cdk-pipelines-04.png)
+![DevOps rules](../../assets/blog/securing-cdk-pipelines-04.png)
 
 Besides the security posture there are also DevOps rules to follow:
 
@@ -50,13 +50,13 @@ Besides the security posture there are also DevOps rules to follow:
 
 ## The Cloud Development Kit
 
-![CDK](/images/blog/securing-cdk-pipelines-05.png)
+![CDK](../../assets/blog/securing-cdk-pipelines-05.png)
 
 With the use of CDK, the DevOps rule to deploy everything via code is checked.
 
 ## Problems with CDK pipelines
 
-![Problems with CDK pipelines](/images/blog/securing-cdk-pipelines-06.png)
+![Problems with CDK pipelines](../../assets/blog/securing-cdk-pipelines-06.png)
 
 CDK pipelines is not compliant out of the box according to all the CISO requirements mentioned in the service catalogue:
 
@@ -71,7 +71,7 @@ CDK pipelines is not compliant out of the box according to all the CISO requirem
 
 ### CodeCommit
 
-![CodeCommit flow](/images/blog/securing-cdk-pipelines-07.png)
+![CodeCommit flow](../../assets/blog/securing-cdk-pipelines-07.png)
 
 The code is stored in CodeCommit. We want to implement the process of 4 eyes principle and make sure that code is tested before release.
 
@@ -79,7 +79,7 @@ Basically a developer needs to create a pull request on the main or develop bran
 
 ### CodeCommit construct and aspects
 
-![CodeCommit construct](/images/blog/securing-cdk-pipelines-08.png)
+![CodeCommit construct](../../assets/blog/securing-cdk-pipelines-08.png)
 
 We use the cdk-pull-request-check construct from CloudComponents. This construct will create all the approval templates, CodeBuild project, Lambda functions and notifications on your behalf. We create aspects for CodeBuild and Lambda functions to run inside your VPC.
 
@@ -87,7 +87,7 @@ This will checkbox the "4 eyes principle" and "Code is tested".
 
 ### CDK pipelines construct
 
-![CDK pipelines construct](/images/blog/securing-cdk-pipelines-09.png)
+![CDK pipelines construct](../../assets/blog/securing-cdk-pipelines-09.png)
 
 Let us create a construct for the secure CDK pipeline. As per service catalogue we need to have the CodeBuild projects running inside the VPC. We need to use the remote package management system, therefore we need to have a partial buildspec.yml and credentials in place.
 
@@ -95,31 +95,31 @@ One of the other service catalogue items is that a bucket needs to have bucket l
 
 ### DevOps rules checked
 
-![DevOps rules checked](/images/blog/securing-cdk-pipelines-10.png)
+![DevOps rules checked](../../assets/blog/securing-cdk-pipelines-10.png)
 
 So summarized, we are using CDK to deploy our application, so everything is code. With the approval process (codechecker) of CloudComponents from the Construct Hub in place we meet the requirements that code is tested and we need that extra pair of eyes for pushing to the main branch.
 
 ### Code is secure
 
-![Code is secure](/images/blog/securing-cdk-pipelines-11.png)
+![Code is secure](../../assets/blog/securing-cdk-pipelines-11.png)
 
 Another cool construct from the Construct Hub is cdk-nag. With cdk-nag you can embed linting for AWS best practices on security right in your code. The nicest thing of all is that you are aware of security issues before deployment.
 
 ### Never push to main
 
-![Never push to main](/images/blog/securing-cdk-pipelines-12.png)
+![Never push to main](../../assets/blog/securing-cdk-pipelines-12.png)
 
 When I start a new project with a customer I always start with discussing rules and guidelines on how we are going to work. When you want to make sure everyone commits to the rules, [you can also lock down the repositories in the IAM role which is being assumed](https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-conditional-branch.html).
 
 ### Security posture achieved
 
-![Security posture](/images/blog/securing-cdk-pipelines-13.png)
+![Security posture](../../assets/blog/securing-cdk-pipelines-13.png)
 
 Looking at the security posture of the enterprise, with all the measurements, constructs and aspects in place, we are creating code which adheres to the security standards written down in the service catalogue. And following this will result in a 95%+ Security Hub compliant score.
 
 ### All DevOps rules checked
 
-![All DevOps rules checked](/images/blog/securing-cdk-pipelines-14.png)
+![All DevOps rules checked](../../assets/blog/securing-cdk-pipelines-14.png)
 
 Also all the DevOps checks are checked and marked complete. This will make the CISO happy for sure!
 

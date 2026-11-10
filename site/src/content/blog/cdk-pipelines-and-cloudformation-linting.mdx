@@ -5,7 +5,7 @@ date: "2021-09-05"
 tags: ["AWS", "CDK", "CI/CD", "Security", "Python"]
 featured: false
 author: "Yvo van Zee"
-coverImage: "/images/blog/cdk-pipelines-linting-cover.png"
+coverImage: "../../assets/blog/cdk-pipelines-linting-cover.png"
 ---
 
 ## Background
@@ -146,11 +146,11 @@ The key is in the commands after `cdk synth`. We copy all template.json files to
 
 With the CDK pipeline deployed, the first run is automatically initiated.
 
-![CDK Pipeline](/images/blog/cdk-pipelines-linting-pipeline.png)
+![CDK Pipeline](../../assets/blog/cdk-pipelines-linting-pipeline.png)
 
 During the run, the CodeBuild phase which is responsible for the generation of the CloudFormation template, our CFN_NAG for loop is executed as well. So all the templates are validated with CFN_NAG.
 
-![CodeBuild CFN_NAG output](/images/blog/cdk-pipelines-linting-codebuild.png)
+![CodeBuild CFN_NAG output](../../assets/blog/cdk-pipelines-linting-codebuild.png)
 
 The result can be checked inside the CodeBuild step of the pipeline:
 
